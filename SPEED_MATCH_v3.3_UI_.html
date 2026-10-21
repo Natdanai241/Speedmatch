@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<title>SPEED MATCH</title>
+<style>
+:root{
+  --bg0:#17101a;--clay:#e8845f;--clay2:#f7a885;--clayd:#a8513a;
+  --sand:#f2e8d8;--sand2:#fdf9f1;--mute:rgba(253,249,241,.56);
+  --sage:#74c9a4;--gold:#edc06b;--gold2:#fbe8bd;--bad:#f4705c;--violet:#b893e0;
+  --cw:20px;--cw2:32px;--cc:42px;--r:13px;--r2:20px;
+  --gl:rgba(253,249,241,.1);--gl2:rgba(253,249,241,.2);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{font-family:"Noto Sans Thai",-apple-system,"Segoe UI",system-ui,sans-serif;color:var(--sand2);
+  background:var(--bg0);display:flex;flex-direction:column;height:100dvh;user-select:none;
+  position:relative;font-weight:500;-webkit-font-smoothing:antialiased;font-size:14px}
+/* ===== ERROR PANEL ===== */
+#errPanel{position:fixed;left:0;right:0;bottom:0;z-index:999;display:none;padding:12px 14px;
+  background:linear-gradient(180deg,#8a2424,#6d1a1a);border-top:2px solid #ff7a68;
+  box-shadow:0 -8px 32px rgba(0,0,0,.6);padding-bottom:max(12px,env(safe-area-inset-bottom))}
+#errPanel.on{display:block}
+#errPanel h4{font-size:12px;color:#ffdcd5;margin-bottom:5px}
+#errPanel pre{font-size:10px;color:#ffbcb1;white-space:pre-wrap;word-break:break-word;
+  max-height:76px;overflow:auto;line-height:1.5;font-family:ui-monospace,monospace}
+#errPanel .rw{display:flex;gap:7px;margin-top:8px}
+/* ===== BACKGROUND ===== */
+#bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+  background:linear-gradient(177deg,#140e16 0%,#2a1d24 38%,#5a3630 74%,#9a5739 92%,#c27a4c 100%)}
+#bg::after{content:"";position:absolute;inset:0;
+  background:radial-gradient(135% 70% at 50% 112%,rgba(232,132,95,.38),transparent 62%)}
+#bg::before{content:"";position:absolute;inset:0;opacity:.55;
+  background:radial-gradient(60% 40% at 15% 20%,rgba(184,147,224,.13),transparent 70%),
+             radial-gradient(50% 36% at 85% 12%,rgba(116,201,164,.11),transparent 70%)}
+#sun{position:absolute;left:50%;bottom:21%;transform:translateX(-50%);width:58vmin;height:58vmin;border-radius:50%;
+  background:radial-gradient(circle,rgba(251,232,189,.44) 0%,rgba(232,132,95,.2) 48%,transparent 72%);
+  animation:breathe 11s ease-in-out infinite}
+@keyframes breathe{50%{transform:translateX(-50%) scale(1.1);opacity:.85}}
+#track{position:absolute;left:-30%;right:-30%;bottom:-17%;height:46%;
+  background:repeating-linear-gradient(90deg,rgba(253,249,241,0) 0 88px,rgba(253,249,241,.13) 88px 92px);
+  transform:perspective(430px) rotateX(68deg);border-top:2px solid rgba(253,249,241,.19);
+  animation:slide 11s linear infinite}
+@keyframes slide{to{background-position:92px 0}}
+.rings{position:absolute;top:4.5%;left:50%;transform:translateX(-50%);display:flex;opacity:.12;animation:sway 17s ease-in-out infinite}
+.rings i{width:7.4vmin;height:7.4vmin;border:.55vmin solid var(--sand);border-radius:50%;margin-left:-1.85vmin;display:block}
+.rings i:nth-child(1){border-color:#edc06b;margin:0}.rings i:nth-child(2){border-color:#f2e8d8}
+.rings i:nth-child(3){border-color:#e8845f}
+.rings i:nth-child(4){border-color:#74c9a4;transform:translateY(48%)}
+.rings i:nth-child(5){border-color:#b893e0;transform:translateY(48%)}
+@keyframes sway{50%{transform:translateX(-50%) translateY(12px) rotate(1.3deg)}}
+.fl{position:absolute;opacity:.24;transform-origin:bottom left;animation:wv 5.4s ease-in-out infinite;font-size:clamp(14px,3.1vmin,25px)}
+@keyframes wv{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(6deg) skewX(-6deg)}}
+.rn{position:absolute;opacity:.2;animation:rr linear infinite;font-size:clamp(14px,2.9vmin,23px)}
+@keyframes rr{from{transform:translateX(-16vw) scaleX(-1)}to{transform:translateX(116vw) scaleX(-1)}}
+.sp{position:absolute;opacity:.12;animation:ri linear infinite;font-size:clamp(10px,1.9vmin,15px)}
+@keyframes ri{from{transform:translateY(14vh) rotate(0)}to{transform:translateY(-115vh) rotate(330deg)}}
+/* ===== HEADER ===== */
+header{position:relative;z-index:6;display:flex;align-items:center;gap:6px;padding:8px 10px;
+  padding-top:max(8px,env(safe-area-inset-top));background:rgba(23,16,26,.78);
+  backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--gl);flex:none}
+.hl{display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow:hidden}
+.logo{font-weight:800;letter-spacing:.14em;font-size:clamp(11px,3.1vw,15px);white-space:nowrap;flex:none;
+  background:linear-gradient(95deg,#fdf9f1,#f7a885 36%,#edc06b 62%,#fdf9f1);background-size:220% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 6s linear infinite}
+@keyframes shimmer{to{background-position:220% 0}}
+.chip{font-variant-numeric:tabular-nums;font-weight:700;font-size:10px;color:var(--gold2);flex:none;
+  background:rgba(253,249,241,.08);padding:4px 9px;border-radius:99px;border:1px solid var(--gl);white-space:nowrap}
+.chip.net{color:var(--sage)}.chip.net.bad{color:var(--bad)}.chip.net.mid{color:var(--gold)}
+.tools{display:flex;gap:4px;flex:none}
+@media(max-width:560px){body.ingame .logo{display:none}}
+@media(max-width:380px){.chip{padding:3px 7px;font-size:9.5px}}
+/* ===== BUTTONS ===== */
+button{font:inherit;cursor:pointer;border:0;color:inherit;font-weight:600}
+.btn{padding:11px 17px;border-radius:var(--r);font-size:clamp(11.5px,2.9vw,13.5px);
+  background:rgba(253,249,241,.07);color:var(--sand2);border:1px solid var(--gl2);
+  transition:background .16s,transform .1s,box-shadow .16s,opacity .16s;white-space:nowrap;position:relative;overflow:hidden;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn::before{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.22) 50%,transparent 70%);
+  transform:translateX(-120%);transition:transform .55s;pointer-events:none}
+.btn:hover::before{transform:translateX(120%)}
+.btn:hover{background:rgba(253,249,241,.14)}
+.btn:active{transform:scale(.97)}
+.btn.p{background:linear-gradient(170deg,var(--clay2),var(--clay) 60%,#d1714e);border-color:var(--clayd);
+  color:#2d1109;font-weight:800;box-shadow:0 5px 18px rgba(232,132,95,.34),inset 0 1px 0 rgba(255,255,255,.4)}
+.btn.s{background:linear-gradient(170deg,#93dcbb,var(--sage) 60%,#55ab88);border-color:#4e977a;color:#0d2c20;
+  font-weight:800;box-shadow:0 5px 18px rgba(116,201,164,.3),inset 0 1px 0 rgba(255,255,255,.4)}
+.btn.g{background:linear-gradient(170deg,var(--gold2),var(--gold) 60%,#d2a04c);border-color:#ad8540;color:#31250a;
+  font-weight:800;box-shadow:0 5px 18px rgba(237,192,107,.3),inset 0 1px 0 rgba(255,255,255,.45)}
+.btn.ic{padding:8px 10px;border-radius:10px;font-size:12.5px}
+.btn.off{opacity:.45;text-decoration:line-through}
+.btn[disabled]{opacity:.3;pointer-events:none;box-shadow:none}
+.btn.wide{width:100%}
+/* ===== SCREENS ===== */
+main{flex:1;min-height:0;position:relative;z-index:3;display:flex;flex-direction:column}
+.screen{flex:1;min-height:0;display:none;flex-direction:column}
+.screen.on{display:flex}
+.scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 13px;
+  display:flex;flex-direction:column;align-items:center;gap:12px;padding-bottom:max(26px,env(safe-area-inset-bottom))}
+/* FIX: ห้ามบีบกล่องให้เตี้ยกว่าเนื้อหา → ไม่ซ้อนกันอีก */
+.scroll>*{flex:none;width:min(520px,100%)}
+.box{border-radius:var(--r2);padding:16px;position:relative;
+  background:linear-gradient(165deg,rgba(253,249,241,.09),rgba(253,249,241,.035));
+  border:1px solid var(--gl);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:0 10px 32px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1)}
+.box>*+*{margin-top:0}
+.box h2{font-size:12px;color:var(--sand);margin-bottom:12px;letter-spacing:.1em;text-transform:uppercase;
+  font-weight:800;display:flex;align-items:center;gap:7px}
+.box.pane{display:none}.box.pane.on{display:block;animation:up .3s cubic-bezier(.2,.9,.3,1)}
+.hero{text-align:center;padding:8px 0 0}
+.mascot{font-size:38px;display:block;margin-bottom:2px;animation:hop 1.8s ease-in-out infinite;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4))}
+@keyframes hop{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-9px) rotate(3deg)}}
+.hero .t{font-size:clamp(28px,9.4vw,48px);font-weight:200;letter-spacing:.2em;line-height:1.1;padding-left:.2em;
+  background:linear-gradient(100deg,#fdf9f1,#f7a885 40%,#edc06b 60%,#fdf9f1);background-size:220% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 7s linear infinite}
+.hero .ln{width:46px;height:2px;border-radius:9px;margin:11px auto 8px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.hero .s{font-size:10px;letter-spacing:.3em;color:var(--mute);text-transform:uppercase}
+.prof{display:flex;align-items:center;gap:12px}
+.bigav{width:54px;height:54px;border-radius:50%;font-size:29px;flex:none;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 35% 30%,rgba(251,232,189,.35),rgba(237,192,107,.1));border:1px solid rgba(237,192,107,.5);
+  box-shadow:0 0 18px rgba(237,192,107,.25)}
+.prof .f{flex:1;min-width:0}
+label.fld{display:block;font-size:10.5px;color:var(--mute);margin:12px 0 6px;letter-spacing:.07em;font-weight:700}
+.prof label.fld{margin-top:0}
+input[type=text]{width:100%;font:inherit;font-weight:600;padding:12px 14px;border-radius:var(--r);
+  background:rgba(0,0,0,.26);border:1px solid var(--gl2);color:var(--sand2);outline:none;transition:.2s;display:block}
+input[type=text]::placeholder{color:rgba(253,249,241,.25)}
+input[type=text]:focus{border-color:var(--clay);box-shadow:0 0 0 3px rgba(232,132,95,.15)}
+#joinCode{text-align:center;letter-spacing:.48em;font-weight:800;font-size:21px;text-transform:uppercase;color:var(--gold2);padding-left:.48em}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.row>.btn{flex:1 1 auto}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1 1 0;min-width:52px;padding:10px 4px;border-radius:12px;font-size:12px;font-weight:700;line-height:1.25;
+  background:rgba(253,249,241,.05);border:1px solid var(--gl);color:var(--mute);transition:.17s}
+.seg button small{display:block;font-weight:500;font-size:9px;opacity:.65;margin-top:2px}
+.seg button.sel{background:linear-gradient(170deg,#fff,var(--sand));border-color:var(--sand2);color:#2b1f24;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.seg button[disabled]{opacity:.22;pointer-events:none}
+.seg.sm button{min-width:42px;padding:9px 2px}
+.tabs{display:flex;gap:4px;padding:4px;border-radius:16px;background:rgba(0,0,0,.3);border:1px solid var(--gl)}
+.tabs button{flex:1 1 0;min-width:0;padding:10px 4px;border-radius:12px;font-size:12px;font-weight:800;color:var(--mute);transition:.18s;white-space:nowrap}
+.tabs button.sel{background:linear-gradient(170deg,var(--clay2),var(--clay));color:#2d1109;box-shadow:0 4px 14px rgba(232,132,95,.35)}
+.sumline{margin-top:12px;font-size:11.5px;line-height:1.7;color:var(--mute);background:rgba(0,0,0,.24);
+  border:1px solid var(--gl);border-radius:12px;padding:10px 12px;text-align:center}
+.sumline b{color:var(--gold2)}
+.avp{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.avp button{width:40px;height:40px;border-radius:50%;font-size:20px;background:rgba(253,249,241,.05);
+  border:1px solid var(--gl);display:flex;align-items:center;justify-content:center;transition:.17s;flex:none}
+.avp button.sel{background:rgba(237,192,107,.22);border-color:var(--gold);box-shadow:0 0 0 2px rgba(237,192,107,.35)}
+.note{font-size:11px;line-height:1.8;color:var(--mute)}.note b{color:var(--sand)}
+.steps{display:flex;flex-direction:column;gap:9px}
+.step{display:flex;gap:10px;align-items:flex-start;font-size:12px;line-height:1.55;color:var(--mute)}
+.step i{flex:none;width:20px;height:20px;border-radius:50%;background:rgba(237,192,107,.16);border:1px solid rgba(237,192,107,.42);
+  color:var(--gold2);font-style:normal;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.step b{color:var(--sand2)}
+.status{margin-top:12px;font-size:11.5px;font-weight:600;padding:10px 12px;border-radius:12px;text-align:center;line-height:1.6;
+  background:rgba(0,0,0,.24);border:1px solid var(--gl);color:var(--mute);word-break:break-word}
+.status.err{border-color:rgba(244,112,92,.5);color:#ffb9a9;background:rgba(244,112,92,.1)}
+.status.ok{border-color:rgba(116,201,164,.5);color:#b6e6cd;background:rgba(116,201,164,.1)}
+.divider{display:flex;align-items:center;gap:10px;margin:16px 0 4px;font-size:10px;color:var(--mute);letter-spacing:.15em}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--gl)}
+.codebox{display:flex;align-items:center;justify-content:center;gap:11px;margin:2px 0 4px;flex-wrap:wrap}
+.codebox .c{font-size:clamp(24px,8vw,36px);font-weight:300;letter-spacing:.3em;color:var(--gold2);padding-left:.3em;text-shadow:0 0 22px rgba(237,192,107,.4)}
+.plist{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.prow{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;font-size:12px;font-weight:600;min-width:0;
+  background:rgba(253,249,241,.05);border:1px solid var(--gl);border-left-width:3px}
+.prow .av{font-size:17px;flex:none}
+.prow .nmx{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--sage);flex:none;box-shadow:0 0 0 3px rgba(116,201,164,.17)}
+.dot.off{background:#7a6a68;box-shadow:none}
+.prow .tag{font-size:9.5px;color:var(--mute);font-weight:500;flex:none}
+.diag{font-size:11px;line-height:1.85;text-align:left}
+.diag:not(:empty){margin-top:10px}
+.diag div{display:flex;gap:7px}.diag span:first-child{flex:none;width:16px}
+.foot{display:flex;justify-content:center;align-items:center;gap:10px;font-size:10px;color:var(--mute);flex-wrap:wrap}
+/* ===== GAME TABLE ===== */
+#scGame{overflow:hidden}
+#table{flex:1;min-height:0;display:flex;flex-direction:column;gap:5px;padding:6px;overflow:hidden}
+#opps{flex:none;display:grid;gap:5px;min-height:0;overflow:hidden}
+.ob{min-width:0;min-height:0;display:flex;flex-direction:column;gap:3px;padding:5px 6px;border-radius:var(--r);overflow:hidden;
+  border:1px solid var(--gl);border-top:2px solid var(--sc,var(--gl));transition:box-shadow .3s,opacity .3s;
+  background:linear-gradient(180deg,rgba(253,249,241,.09),rgba(253,249,241,.03));box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+.ob.lead{box-shadow:0 0 0 1px rgba(237,192,107,.45),0 0 20px rgba(237,192,107,.18)}
+.ob.off{opacity:.4}
+.ob .card.back{border-color:var(--sc,rgba(237,192,107,.3))}
+.ob .pile .lb{display:none}
+.nm{display:flex;align-items:center;gap:4px;font-size:clamp(8.5px,2.2vw,11px);font-weight:700;min-width:0;flex:none}
+.nm .av{font-size:clamp(11px,2.9vw,16px);flex:none;line-height:1}
+.nm .who{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sand)}
+.nm .sc{color:var(--gold2);white-space:nowrap;font-variant-numeric:tabular-nums;flex:none}
+.nm .tp{flex:none;font-size:.9em;color:var(--gold2);background:rgba(237,192,107,.14);border-radius:99px;padding:0 5px}
+.pg{font-size:8px;font-weight:800;flex:none;opacity:.85;color:var(--sage)}
+.pg.mid{color:var(--gold)}.pg.bad{color:var(--bad)}
+.pips{display:flex;gap:2px;flex:none;align-items:center}
+.pips i{width:5px;height:5px;border-radius:50%;background:rgba(253,249,241,.17);display:block}
+.pips i.f{background:var(--gold);box-shadow:0 0 5px rgba(237,192,107,.85)}
+.pips .mo{font-size:9px;color:var(--gold2);font-weight:800}
+.bar{height:3px;border-radius:99px;background:rgba(0,0,0,.36);overflow:hidden;flex:none}
+.bar>i{display:block;height:100%;border-radius:99px;width:0;transition:width .45s cubic-bezier(.4,0,.2,1);
+  background:linear-gradient(90deg,var(--sage),var(--gold),var(--clay2))}
+.pw{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.pr{display:grid;gap:4px;justify-items:center;align-content:center;transform-origin:center center}
+.pile{display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px;border-radius:9px;
+  background:rgba(0,0,0,.24);border:1px solid rgba(253,249,241,.07);transition:box-shadow .2s,border-color .25s,background .25s}
+.pile .gr{display:grid;grid-template-columns:repeat(2,auto);gap:2.5px}
+.pile .lb{font-size:8px;color:var(--mute);white-space:nowrap;font-weight:700;line-height:1.2}
+#me .pile{cursor:pointer}
+#me .pile:active{filter:brightness(1.15)}
+/* FIX: กองที่ถือ/ไพ่ที่เลือก ไม่ใช้ translate → ไม่เบียดทับกองข้างเคียง */
+.pile.held{border-color:var(--gold);background:rgba(237,192,107,.2);box-shadow:inset 0 0 0 1px var(--gold),0 0 18px rgba(237,192,107,.4)}
+.pile.done{border-color:rgba(116,201,164,.7);background:rgba(116,201,164,.15);box-shadow:0 0 12px rgba(116,201,164,.22)}
+.pile.done .lb{color:var(--sage)}
+.pile.pop{animation:pop .62s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{0%{filter:brightness(1)}30%{filter:brightness(1.7)}100%{filter:brightness(1)}}
+.card{width:var(--w);height:calc(var(--w)*1.45);border-radius:calc(var(--w)*.14);position:relative;flex:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;font-weight:800;overflow:hidden;
+  background:linear-gradient(157deg,#fffdf9 0%,#f8efdf 58%,#ebdfc8 100%);color:#2d2127;border:1px solid rgba(237,192,107,.92);
+  box-shadow:0 2px 4px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -2px 3px rgba(150,120,80,.2)}
+.card::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(142deg,rgba(255,255,255,.55) 0%,transparent 34%)}
+.card .rk{font-size:calc(var(--w)*.44);letter-spacing:-.03em;position:relative;z-index:1}
+.card .st{font-size:calc(var(--w)*.31);margin-top:calc(var(--w)*.04);opacity:.88;position:relative;z-index:1}
+.card.red{color:#cc4f3d}
+.card.back{color:transparent;border-color:rgba(237,192,107,.3);background:linear-gradient(157deg,#5b3d44,#3a2830 72%);
+  box-shadow:0 2px 4px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.08)}
+.card.back::after{background:none;inset:calc(var(--w)*.19);border-radius:50%;border:1px solid rgba(237,192,107,.4)}
+.card.give{background:linear-gradient(157deg,#fff6dc,#f6e0ab);box-shadow:inset 0 0 0 2px var(--gold),0 0 12px rgba(237,192,107,.6)}
+.card.flash{animation:flip .5s cubic-bezier(.4,0,.2,1)}
+@keyframes flip{0%{transform:rotateY(180deg);filter:brightness(1.9)}100%{transform:none;filter:none}}
+.opp{--w:var(--cw)}#me{--w:var(--cw2)}#crow{--w:var(--cc)}
+#cz{flex:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 5px;border-radius:var(--r2);overflow:hidden;
+  background:linear-gradient(180deg,rgba(253,249,241,.085),rgba(0,0,0,.2));border:1px solid var(--gl);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);transition:border-color .3s,box-shadow .3s}
+.ct{font-size:8.5px;letter-spacing:.28em;color:var(--mute);font-weight:800;text-transform:uppercase;padding-left:.28em;flex:none;line-height:1.3}
+.cwrap{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#crow{display:grid;gap:7px;justify-items:center;align-content:center;transform-origin:center center}
+#cz.armed{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 8px 32px rgba(237,192,107,.3)}
+#cz.armed .ct{color:var(--gold2)}
+#cz.armed #crow .card{cursor:pointer}
+#cz.armed #crow .card:active{filter:brightness(1.2)}
+#me{flex:1;min-height:0;display:flex;flex-direction:column;gap:4px;padding:6px;border-radius:var(--r2);overflow:hidden;
+  background:linear-gradient(180deg,rgba(232,132,95,.17),rgba(0,0,0,.26));border:1px solid rgba(232,132,95,.42);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+#me .nm{font-size:clamp(10.5px,2.8vw,13px)}
+#dock{flex:none;display:flex;align-items:center;gap:6px;padding:6px 8px;padding-bottom:max(6px,env(safe-area-inset-bottom));
+  background:rgba(23,16,26,.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--gl)}
+#hint{flex:1;min-width:0;font-size:11px;font-weight:800;color:var(--gold2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-left:4px}
+#dock .btn{padding:9px 12px;font-size:11.5px;border-radius:11px;flex:none}
+#banner{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:75;pointer-events:none;opacity:0;text-align:center;white-space:nowrap}
+#banner.on{animation:bn 1.5s cubic-bezier(.2,.9,.3,1) forwards}
+@keyframes bn{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}
+  30%{transform:translate(-50%,-50%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.08)}}
+#banner .b1{font-size:clamp(28px,9vw,46px);font-weight:800;letter-spacing:.08em;
+  background:linear-gradient(100deg,#fdf9f1,#edc06b 55%,#f7a885);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 6px 22px rgba(0,0,0,.65))}
+#banner .b2{font-size:12px;letter-spacing:.3em;color:var(--sand);opacity:.8;margin-top:5px}
+/* ===== OVERLAYS ===== */
+.ov{position:fixed;inset:0;z-index:60;background:rgba(18,11,16,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  display:none;align-items:center;justify-content:center;padding:16px}
+.ov.on{display:flex;animation:fade .22s ease}
+#ovTest{z-index:90}
+@keyframes fade{from{opacity:0}}
+.panel{width:min(440px,100%);max-height:88vh;max-height:88dvh;overflow-y:auto;text-align:center;padding:22px 18px;border-radius:26px;
+  display:flex;flex-direction:column;gap:10px;position:relative;
+  background:linear-gradient(165deg,#56393f,#2c1e24);border:1px solid rgba(237,192,107,.4);
+  box-shadow:0 28px 72px rgba(0,0,0,.66),inset 0 1px 0 rgba(255,255,255,.12);animation:up .34s cubic-bezier(.2,.9,.3,1)}
+.panel>*{flex:none}
+@keyframes up{from{transform:translateY(20px);opacity:0}}
+.panel h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--gold2)}
+.panel ul{text-align:left;padding-left:17px;font-size:12px;line-height:1.9;color:var(--mute)}
+.panel ul b{color:var(--sand2)}
+.panel .row{justify-content:center;margin-top:4px}
+.medal{font-size:46px;line-height:1.15;display:block;filter:drop-shadow(0 6px 16px rgba(0,0,0,.5))}
+.wbig{font-size:clamp(18px,6vw,26px);font-weight:300;letter-spacing:.03em;line-height:1.35}
+.wbig b{font-weight:800;color:var(--gold2)}
+.sub{font-size:11px;color:var(--mute);line-height:1.7}
+.rank{display:flex;flex-direction:column;gap:5px}
+.rank .r{display:flex;gap:8px;align-items:center;padding:9px 11px;border-radius:12px;font-size:12px;font-weight:700;min-width:0;
+  background:rgba(253,249,241,.055);border:1px solid var(--gl);animation:up .4s backwards;text-align:left}
+.rank .r.mine{border-color:rgba(237,192,107,.6);background:rgba(237,192,107,.12)}
+.rank .r .md{flex:none;width:22px;text-align:center}
+.rank .r .av{font-size:18px;flex:none}
+.rank .r .nmx{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank .r .p{flex:none;color:var(--gold2);font-variant-numeric:tabular-nums;font-weight:800;text-align:right}
+.rank .r .pl{display:block;font-size:9.5px;color:var(--mute);font-weight:500}
+.rank .r .plus{color:var(--sage);font-weight:800;font-size:11px;flex:none}
+.pod{display:flex;align-items:flex-end;justify-content:center;gap:7px;height:104px}
+.pod div{flex:1;max-width:84px;min-width:0;border-radius:12px 12px 0 0;background:rgba(253,249,241,.08);border:1px solid var(--gl);border-bottom:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:6px 4px;gap:1px;
+  transform-origin:bottom;animation:grow .52s cubic-bezier(.2,.9,.3,1) backwards}
+@keyframes grow{from{transform:scaleY(.3);opacity:0}}
+.pod .a{font-size:22px;line-height:1.1}
+.pod .n{font-size:9px;color:var(--mute);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pod .v{font-size:11.5px;font-weight:800;color:var(--gold2)}
+.pod .p1{height:100%;background:linear-gradient(180deg,rgba(237,192,107,.28),rgba(237,192,107,.1));border-color:rgba(237,192,107,.55)}
+.pod .p2{height:78%}.pod .p3{height:62%}
+.tlog{text-align:left;font-size:11px;line-height:1.65;max-height:46vh;overflow:auto;background:rgba(0,0,0,.28);
+  border:1px solid var(--gl);border-radius:12px;padding:10px;font-family:ui-monospace,Menlo,monospace;word-break:break-word}
+.tlog .ok{color:#a8e6c9}.tlog .bad{color:#ffb2a3;font-weight:700}.tlog .wr{color:var(--gold)}.tlog .hd{color:var(--gold2);font-weight:800;margin-top:6px}
+#fx{position:fixed;inset:0;z-index:70;pointer-events:none;overflow:hidden}
+.cf{position:absolute;animation:fall linear forwards}
+@keyframes fall{from{transform:translateY(-10vh) rotate(0)}to{transform:translateY(112vh) rotate(680deg);opacity:.08}}
+.pf{position:absolute;font-size:22px;font-weight:800;color:var(--gold2);text-shadow:0 2px 14px rgba(0,0,0,.75);animation:pfl 1.3s cubic-bezier(.2,.9,.3,1) forwards}
+@keyframes pfl{0%{transform:translateY(0) scale(.5);opacity:0}24%{transform:translateY(-13px) scale(1.25);opacity:1}100%{transform:translateY(-64px) scale(1);opacity:0}}
+#toast{position:fixed;left:50%;bottom:calc(66px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(8px);z-index:80;
+  background:rgba(44,30,36,.97);border:1px solid rgba(237,192,107,.45);color:var(--sand2);padding:10px 17px;border-radius:99px;
+  font-size:11.5px;font-weight:700;opacity:0;transition:opacity .24s,transform .24s;pointer-events:none;max-width:88vw;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(min-width:880px){.pile .lb{font-size:9.5px}}
+@media(prefers-reduced-motion:reduce){#track,.rings,.fl,.rn,.sp,#sun,.mascot{animation:none}}
+</style>
+</head>
+<body>
+
+<div id="errPanel">
+  <h4>⚠️ เกิดข้อผิดพลาด (เกมยังใช้งานต่อได้)</h4>
+  <pre id="errText"></pre>
+  <div class="rw"><button class="btn ic" id="errClose">ปิด</button><button class="btn ic" id="errReload">โหลดใหม่</button></div>
+</div>
+
+<div id="bg"><div id="sun"></div><div class="rings"><i></i><i></i><i></i><i></i><i></i></div><div id="track"></div></div>
+
+<header>
+  <div class="hl">
+    <div class="logo">SPEED MATCH</div>
+    <div class="chip" id="chRound" style="display:none">รอบ 1</div>
+    <div class="chip" id="chTime" style="display:none">00:00</div>
+    <div class="chip net" id="chNet" style="display:none">●</div>
+  </div>
+  <div class="tools">
+    <button class="btn ic" id="bMusic" title="เพลง">♪</button>
+    <button class="btn ic" id="bSfx" title="เสียงเอฟเฟกต์">🔊</button>
+    <button class="btn ic" id="bRules" title="กติกา">?</button>
+  </div>
+</header>
+
+<main>
+<!-- ===== HOME ===== -->
+<section class="screen on" id="scHome"><div class="scroll" id="homeScroll">
+  <div class="hero">
+    <span class="mascot">🏃‍♂️💨</span>
+    <div class="t">SPEED MATCH</div>
+    <div class="ln"></div>
+    <div class="s">Olympic Speed Run</div>
+  </div>
+
+  <div class="box">
+    <div class="prof">
+      <div class="bigav" id="bigAv">🦊</div>
+      <div class="f">
+        <label class="fld" for="myName">ชื่อนักกีฬา</label>
+        <input type="text" id="myName" maxlength="12" placeholder="ใส่ชื่อของคุณ">
+      </div>
+    </div>
+    <div class="avp" id="avPick"></div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button data-t="bot" class="sel">🤖 เล่นกับบอท</button>
+    <button data-t="net">🌐 ออนไลน์</button>
+    <button data-t="how">📖 วิธีเล่น</button>
+  </div>
+
+  <div class="box pane on" id="paneBot">
+    <h2>🤖 เล่นเครื่องเดียว (สู้บอท)</h2>
+    <label class="fld">จำนวนสำรับ</label>
+    <div class="seg" id="soloDeck">
+      <button data-d="1" class="sel">1 สำรับ<small>52 ใบ</small></button>
+      <button data-d="2">2 สำรับ<small>104 ใบ</small></button>
+    </div>
+    <label class="fld">จำนวนผู้เล่น</label>
+    <div class="seg sm" id="soloPl"></div>
+    <label class="fld">🏆 แต้มชนะแมตช์</label>
+    <div class="seg sm" id="soloPts">
+      <button data-p="1" class="sel">1</button><button data-p="3">3</button><button data-p="5">5</button>
+      <button data-p="7">7</button><button data-p="10">10</button><button data-p="15">15</button><button data-p="20">20</button>
+    </div>
+    <label class="fld">ระดับบอท</label>
+    <div class="seg" id="soloDiff">
+      <button data-x="easy">🐢 ง่าย</button><button data-x="normal" class="sel">🏃 ปกติ</button><button data-x="hard">⚡ ยาก</button>
+    </div>
+    <div class="sumline" id="soloSum"></div>
+    <div class="row"><button class="btn p" style="padding:14px" id="bSolo">🏁 เริ่มแข่ง</button></div>
+  </div>
+
+  <div class="box pane" id="paneNet">
+    <h2>🌐 เล่นออนไลน์ P2P จริง</h2>
+    <label class="fld">จำนวนสำรับ</label>
+    <div class="seg" id="roomDeck">
+      <button data-d="1" class="sel">1 สำรับ<small>52 ใบ</small></button>
+      <button data-d="2">2 สำรับ<small>104 ใบ</small></button>
+    </div>
+    <label class="fld">จำนวนผู้เล่นในห้อง</label>
+    <div class="seg sm" id="roomPl"></div>
+    <label class="fld">🏆 แต้มชนะแมตช์</label>
+    <div class="seg sm" id="roomPts">
+      <button data-p="1" class="sel">1</button><button data-p="3">3</button><button data-p="5">5</button>
+      <button data-p="7">7</button><button data-p="10">10</button><button data-p="15">15</button><button data-p="20">20</button>
+    </div>
+    <div class="sumline" id="roomSum"></div>
+    <div class="row"><button class="btn s" id="bCreate">🏠 สร้างห้อง</button></div>
+    <div class="divider">หรือ</div>
+    <label class="fld" for="joinCode">เข้าร่วมด้วยรหัส 5 ตัว</label>
+    <input type="text" id="joinCode" maxlength="5" placeholder="ABCDE" autocomplete="off" autocapitalize="characters" spellcheck="false">
+    <div class="row"><button class="btn g" id="bJoin">🚪 เข้าร่วมห้อง</button></div>
+    <div class="status" id="netStatus">พร้อมเชื่อมต่อ</div>
+    <div class="row"><button class="btn" id="bDiag">🔍 ทดสอบการเชื่อมต่อ</button></div>
+    <div class="diag" id="diagOut"></div>
+  </div>
+
+  <div class="box pane" id="paneHow">
+    <h2>📖 วิธีเล่น</h2>
+    <div class="steps">
+      <div class="step"><i>1</i><span>แตะ <b>กองของตัวเอง</b> เพื่อหยิบขึ้นมาดูไพ่ 4 ใบ</span></div>
+      <div class="step"><i>2</i><span>แตะ <b>ไพ่ 1 ใบในกอง</b> ที่ไม่ต้องการ (ขึ้นกรอบทอง)</span></div>
+      <div class="step"><i>3</i><span>แตะ <b>ไพ่กลาง</b> 1 ใบ → สลับทันที</span></div>
+      <div class="step"><i>4</i><span>ครบ <b>4 ใบเลขเดียวกัน</b> → กองสำเร็จอัตโนมัติ (ดอกไม่สำคัญ)</span></div>
+      <div class="step"><i>5</i><span>ทำครบทุกกองก่อน = ชนะรอบ ได้ <b>1 แต้ม</b></span></div>
+      <div class="step"><i>6</i><span>ถึง <b>แต้มชนะ</b> ก่อน = คว้าแชมป์แมตช์ 🏆</span></div>
+      <div class="step"><i>★</i><span>ไม่มีเทิร์น ทุกคนเล่นพร้อมกัน · หยิบได้ครั้งละ 1 กอง</span></div>
+    </div>
+  </div>
+
+  <div class="foot"><button class="btn ic" id="bTest">🧪 ตรวจระบบ</button><span id="verTxt">v3.3</span></div>
+</div></section>
+
+<!-- ===== LOBBY ===== -->
+<section class="screen" id="scLobby"><div class="scroll" id="lobScroll">
+  <div class="box">
+    <h2 id="lobTitle">ห้องของคุณ</h2>
+    <div class="codebox"><div class="c" id="lobCode">-----</div><button class="btn ic" id="bCopy">📋 คัดลอก</button></div>
+    <div class="row"><button class="btn s" id="bShare">🔗 แชร์ลิงก์เข้าห้อง</button></div>
+    <div class="sumline" id="lobSum"></div>
+    <div class="status" id="lobStatus">กำลังเชื่อมต่อ…</div>
+    <div class="plist" id="lobPlayers"></div>
+    <div class="row">
+      <button class="btn p" id="bStart">🏁 เริ่มเกม</button>
+      <button class="btn" id="bLeave" style="flex:0 0 auto">ออก</button>
+    </div>
+    <div class="note" id="lobNote" style="margin-top:10px">ที่นั่งว่างจะใส่บอทอัตโนมัติเมื่อกดเริ่มเกม</div>
+  </div>
+</div></section>
+
+<!-- ===== GAME ===== -->
+<section class="screen" id="scGame">
+  <div id="table">
+    <div id="opps"></div>
+    <div id="cz"><div class="ct" id="ctTitle">ไพ่กลาง</div><div class="cwrap"><div id="crow"></div></div></div>
+    <div id="me">
+      <div class="nm"><span class="av" id="meAv">🦊</span><span class="who" id="meName">คุณ</span>
+        <span class="pips" id="mePips"></span><span class="sc" id="meScore">0/0</span></div>
+      <div class="bar"><i id="meBar"></i></div>
+      <div class="pw"><div class="pr" id="mePiles"></div></div>
+    </div>
+  </div>
+  <div id="dock">
+    <div id="hint">แตะกองของคุณเพื่อเริ่ม</div>
+    <button class="btn ic" id="bDrop">วางกอง</button>
+    <button class="btn ic" id="bQuit">ออก</button>
+  </div>
+</section>
+</main>
+
+<div id="banner"><div class="b1" id="bnr1">รอบ 1</div><div class="b2" id="bnr2">GO</div></div>
+
+<!-- ===== OVERLAYS ===== -->
+<div class="ov" id="ovRules"><div class="panel">
+  <h2>กติกา SPEED MATCH</h2>
+  <ul>
+    <li>เลือกได้ <b>1 สำรับ (52 ใบ)</b> หรือ <b>2 สำรับ (104 ใบ)</b></li>
+    <li>1 สำรับ: 2 คน=6 กอง · 3 คน=4 · 4 คน=3 · 6 คน=2 · ไพ่กลาง 4</li>
+    <li>2 สำรับ: 2 คน=12 · 3 คน=8 · 4 คน=6 · 6 คน=4 (กลาง 8) · 5 คน=5 (กลาง 4)</li>
+    <li>ทุกกองมี <b>4 ใบเสมอ</b> · ทุกคนได้จำนวนกองเท่ากัน</li>
+    <li><b>เล่นพร้อมกัน ไม่มีเทิร์น</b> · หยิบได้ <b>ครั้งละ 1 กอง</b></li>
+    <li>สลับไพ่ในกองที่ถือกับไพ่กลาง 1 ใบ</li>
+    <li>ห้ามสลับระหว่างกองตัวเอง · ห้ามแตะกองคนอื่น</li>
+    <li>ครบ <b>4 ใบเลขเดียวกัน</b> = สำเร็จ แตะไม่ได้อีก</li>
+    <li>ทำครบทุกกองก่อน = ชนะรอบ <b>+1 แต้ม</b> · ถึงแต้มชนะ = แชมป์</li>
+  </ul>
+  <div class="row"><button class="btn g" id="bRulesClose">เข้าใจแล้ว</button></div>
+</div></div>
+
+<div class="ov" id="ovRound"><div class="panel">
+  <span class="medal" id="rMedal">🎉</span>
+  <div class="wbig" id="rText">จบรอบ</div>
+  <div class="sub" id="rSub"></div>
+  <div class="rank" id="rRank"></div>
+  <div class="row"><button class="btn p" id="bNext">▶ เริ่มรอบต่อไป</button><button class="btn" id="bRHome" style="flex:0 0 auto">ออก</button></div>
+  <div class="note" id="rWait" style="display:none">⏳ รอเจ้าของห้องกดเริ่มรอบต่อไป…</div>
+</div></div>
+
+<div class="ov" id="ovWin"><div class="panel">
+  <span class="medal" id="wMedal">🏆</span>
+  <div class="wbig" id="wText">MATCH! <b>คุณชนะ!</b></div>
+  <div class="sub" id="wSub"></div>
+  <div class="pod" id="pod"></div>
+  <div class="rank" id="wRank"></div>
+  <div class="row"><button class="btn g" id="bAgain">🔄 แข่งแมตช์ใหม่</button><button class="btn" id="bWHome" style="flex:0 0 auto">หน้าแรก</button></div>
+  <div class="note" id="wWait" style="display:none">⏳ รอเจ้าของห้องเริ่มแมตช์ใหม่…</div>
+</div></div>
+
+<div class="ov" id="ovLost"><div class="panel">
+  <span class="medal">📡</span>
+  <div class="wbig">การเชื่อมต่อหลุด</div>
+  <div class="sub">กดเชื่อมต่อใหม่ด้วยชื่อเดิมเพื่อเล่นต่อได้ทันที</div>
+  <div class="row"><button class="btn g" id="bRecon">🔌 เชื่อมต่อใหม่</button><button class="btn" id="bLHome" style="flex:0 0 auto">หน้าแรก</button></div>
+</div></div>
+
+<div class="ov" id="ovTest"><div class="panel">
+  <h2>🧪 ตรวจระบบอัตโนมัติ</h2>
+  <div class="sub" id="tProg">กด “เริ่มตรวจ” เพื่อรันทุกโหมด ทุกจำนวนผู้เล่น ทั้ง 1 และ 2 สำรับ</div>
+  <div class="tlog" id="tLog"></div>
+  <div class="row"><button class="btn g" id="bTestRun">▶ เริ่มตรวจ</button><button class="btn" id="bTestClose" style="flex:0 0 auto">ปิด</button></div>
+</div></div>
+
+<div id="fx"></div><div id="toast"></div>
+
+<script>
+"use strict";
+(function(){
+var VER="3.3";
+/* ================= 0. SAFETY ================= */
+function $(i){return document.getElementById(i);}
+var errCount=0;
+function showErr(msg){
+  try{errCount++;if(errCount>8)return;
+    var p=$("errPanel"),t=$("errText");if(!p||!t)return;
+    t.textContent=(t.textContent?t.textContent+"\n":"")+String(msg).slice(0,280);
+    p.classList.add("on");}catch(e){}
+}
+window.addEventListener("error",function(e){var m=String(e.message||"error");if(/ResizeObserver/i.test(m))return;showErr(m+" @"+(e.lineno||"?"));});
+window.addEventListener("unhandledrejection",function(e){var r=e.reason;showErr("promise: "+(r&&r.message?r.message:r));});
+function safe(fn,tag){return function(){try{return fn.apply(this,arguments);}catch(e){showErr((tag||"")+": "+(e&&e.message));}};}
+function on(id,fn){var e=$(id);if(!e){showErr("missing #"+id);return;}e.addEventListener("click",safe(fn,id));}
+
+/* ================= 1. CONSTANTS ================= */
+var RANKS=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+var SUITS=["\u2660","\u2665","\u2666","\u2663"];
+var AVS=["\uD83E\uDD8A","\uD83D\uDC2F","\uD83D\uDC3C","\uD83E\uDD81","\uD83D\uDC27","\uD83D\uDC28","\uD83D\uDC38","\uD83D\uDC35","\uD83E\uDD84","\uD83D\uDC3B"];
+var BOTS=[["โช้ตะ","\uD83D\uDC2F"],["รินะ","\uD83D\uDC3C"],["ก้อง","\uD83E\uDD81"],["นิว","\uD83D\uDC27"],["เอกซ์","\uD83D\uDC28"],["มิ้น","\uD83D\uDC38"]];
+var SPARK=["\uD83C\uDFC5","\uD83E\uDD47","\uD83C\uDFBD","\uD83D\uDC5F","\uD83D\uDD25","\uD83D\uDCA8","\u2B50","\uD83C\uDFC6"];
+var FLAGS=["\uD83C\uDDF9\uD83C\uDDED","\uD83C\uDDEF\uD83C\uDDF5","\uD83C\uDDF0\uD83C\uDDF7","\uD83C\uDDEB\uD83C\uDDF7","\uD83C\uDDE7\uD83C\uDDF7","\uD83C\uDDEE\uD83C\uDDF9"];
+var SEATC=["#e8845f","#74c9a4","#edc06b","#b893e0","#6fb0e8","#f08aa8"];
+var MD=["\uD83E\uDD47","\uD83E\uDD48","\uD83E\uDD49","4","5","6"];
+var CFG={
+  1:{2:{s:6,c:4},3:{s:4,c:4},4:{s:3,c:4},6:{s:2,c:4}},
+  2:{2:{s:12,c:8},3:{s:8,c:8},4:{s:6,c:8},5:{s:5,c:4},6:{s:4,c:8}}
+};
+(function(){for(var d in CFG)for(var n in CFG[d]){var c=CFG[d][n];if(n*c.s*4+c.c!==d*52)showErr("CFG ผิด "+d+"/"+n);}})();
+
+function rnd(a,b){return a+Math.random()*(b-a);}
+function cl(a,b,v){return v<a?a:(v>b?b:v);}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+function toast(m){if(TESTING)return;var t=$("toast");if(!t)return;t.textContent=m;t.classList.add("on");clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove("on");},1700);}
+function banner(a,b){if(TESTING)return;var el=$("banner");$("bnr1").textContent=a;$("bnr2").textContent=b||"";el.classList.remove("on");void el.offsetWidth;el.classList.add("on");}
+
+/* ================= 2. BACKGROUND ================= */
+try{(function(){
+  var b=$("bg"),i,e;
+  for(i=0;i<6;i++){e=document.createElement("div");e.className="fl";e.textContent=FLAGS[i];
+    e.style.left=(7+i*16)+"%";e.style.top=(i%2?17:25)+"%";e.style.animationDelay=(-i*.6)+"s";b.appendChild(e);}
+  var rr=["\uD83C\uDFC3\u200D\u2642\uFE0F","\uD83C\uDFC3\u200D\u2640\uFE0F","\uD83C\uDFC3","\uD83E\uDD38"];
+  for(i=0;i<4;i++){e=document.createElement("div");e.className="rn";e.textContent=rr[i];
+    e.style.bottom=(6+i*7)+"%";e.style.animationDuration=rnd(32,54)+"s";e.style.animationDelay=(-rnd(0,36))+"s";b.appendChild(e);}
+  for(i=0;i<8;i++){e=document.createElement("div");e.className="sp";e.textContent=SPARK[i];
+    e.style.left=rnd(4,94)+"%";e.style.bottom="-12%";e.style.animationDuration=rnd(26,48)+"s";e.style.animationDelay=(-rnd(0,42))+"s";b.appendChild(e);}
+})();}catch(e){showErr("bg: "+e.message);}
+
+/* ================= 3. AUDIO ================= */
+var SFXON=true,MUSON=true,AC=null,unlocked=false,TESTING=false;
+function ac(){try{if(!AC){var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C();}
+  if(AC.state==="suspended")AC.resume();return AC;}catch(e){return null;}}
+function tone(f,d,ty,v,dl){
+  if(!SFXON||!unlocked||TESTING)return;var a=ac();if(!a)return;
+  try{var t=a.currentTime+(dl||0),o=a.createOscillator(),g=a.createGain();
+    o.type=ty||"triangle";o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v||.05,t+.01);
+    g.gain.exponentialRampToValueAtTime(.0001,t+(d||.1));
+    o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+(d||.1)+.04);}catch(e){}}
+function mt(f,d,v){
+  if(!unlocked)return;var a=ac();if(!a)return;
+  try{var t=a.currentTime,o=a.createOscillator(),g=a.createGain(),lp=a.createBiquadFilter();
+    lp.type="lowpass";lp.frequency.value=1500;o.type="sine";o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.05);
+    g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g);g.connect(lp);lp.connect(a.destination);o.start(t);o.stop(t+d+.05);}catch(e){}}
+var SFX={
+  tap:function(){tone(620,.05,"sine",.04);},
+  pick:function(){tone(450,.07,"triangle",.055);tone(670,.07,"triangle",.04,.045);},
+  give:function(){tone(840,.05,"sine",.05);},
+  swap:function(){tone(340,.06,"triangle",.04);tone(570,.1,"sine",.055,.045);},
+  done:function(){[659,880,1175].forEach(function(n,i){tone(n,.15,"sine",.065,i*.075);});},
+  point:function(){[784,988,1319].forEach(function(n,i){tone(n,.19,"sine",.07,i*.085);});},
+  round:function(){[523,784,1047].forEach(function(n,i){tone(n,.22,"triangle",.06,i*.1);});},
+  win:function(){[523,659,784,1047,1319,1568].forEach(function(n,i){tone(n,.3,"sine",.075,i*.115);});},
+  lose:function(){[440,349,262].forEach(function(n,i){tone(n,.3,"sine",.055,i*.15);});},
+  join:function(){tone(880,.09,"sine",.055);tone(1175,.11,"sine",.045,.08);},
+  err:function(){tone(190,.14,"sine",.045);}
+};
+var MUS={t:null,i:0},BASS=[0,0,7,7,5,5,3,3],LEAD=[12,16,19,16,17,21,19,12];
+function musOn(){if(MUS.t||!MUSON||!unlocked||TESTING)return;
+  MUS.t=setInterval(function(){if(!MUSON)return;var k=MUS.i%8,r=196;
+    mt(r*Math.pow(2,BASS[k]/12),.4,.028);if(k%2===0)mt(r*Math.pow(2,LEAD[k]/12),.25,.02);MUS.i++;},300);}
+function musOff(){if(MUS.t){clearInterval(MUS.t);MUS.t=null;}}
+function unlock(){if(unlocked)return;unlocked=true;ac();if(ST&&ST.started)musOn();}
+["pointerdown","touchstart","keydown"].forEach(function(ev){
+  document.addEventListener(ev,function h(){unlock();document.removeEventListener(ev,h);},{passive:true});});
+on("bSfx",function(){unlock();SFXON=!SFXON;$("bSfx").textContent=SFXON?"\uD83D\uDD0A":"\uD83D\uDD07";$("bSfx").classList.toggle("off",!SFXON);if(SFXON)SFX.tap();});
+on("bMusic",function(){unlock();MUSON=!MUSON;$("bMusic").classList.toggle("off",!MUSON);
+  if(MUSON){if(ST&&ST.started)musOn();toast("เปิดเพลง");}else{musOff();toast("ปิดเพลง");}});
+function confetti(n,el){if(TESTING)return;try{
+  var bx=$("fx"),cx=50,cy=38;
+  if(el){var r=el.getBoundingClientRect();cx=(r.left+r.width/2)/innerWidth*100;cy=r.top/innerHeight*100;}
+  for(var i=0;i<n;i++)(function(){var s=document.createElement("div");s.className="cf";
+    s.textContent=SPARK[Math.floor(Math.random()*SPARK.length)];
+    s.style.left=(cx+rnd(-16,16))+"%";s.style.top=cy+"%";s.style.fontSize=rnd(11,23)+"px";
+    var d=rnd(1.5,2.9);s.style.animationDuration=d+"s";bx.appendChild(s);
+    setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s);},d*1e3+80);})();
+}catch(e){}}
+function floatPt(txt,el){if(TESTING)return;try{
+  var r=el?el.getBoundingClientRect():null,s=document.createElement("div");s.className="pf";s.textContent=txt;
+  s.style.left=(r?r.left+r.width/2-16:innerWidth/2-16)+"px";s.style.top=(r?r.top:innerHeight/2)+"px";
+  $("fx").appendChild(s);setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s);},1400);}catch(e){}}
+
+/* ================= 4. CORE STATE ================= */
+var MODE="solo",ST=null,LOB=null,MY=0,DIFF="normal";
+var PEND=[],SEQ=0,CLKOFF=0,MYPING=0,LASTSEQ={};
+var lastEvSeen=0,tick=null,botT=null,winTimer=null,castT=null,castPend=false,keepT=null,pingT=null,oppCols=1;
+var myAv=AVS[0];
+
+function rankOf(v){return v%13;}
+function suitOf(v){return (v/13)|0;}
+function same4(a){return !!a&&a.length===4&&rankOf(a[0])===rankOf(a[1])&&rankOf(a[1])===rankOf(a[2])&&rankOf(a[2])===rankOf(a[3]);}
+function doneCnt(p){var n=0,i;for(i=0;i<p.piles.length;i++)if(p.piles[i].done)n++;return n;}
+function allDone(p){return p.piles.length>0&&doneCnt(p)===p.piles.length;}
+function shuf(a){for(var i=a.length-1;i>0;i--){var k=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[k];a[k]=t;}return a;}
+function seat(n,bot,av){return {name:n,av:av||"\uD83D\uDE42",bot:!!bot,online:true,auto:false,piles:[],held:null,give:null,pts:0,ping:0,_n:0};}
+
+function buildDeal(decks,n){
+  var cfg=CFG[decks]&&CFG[decks][n];if(!cfg)return null;
+  var total=decks*52,d=[],i,j,k=0,piles=[];
+  for(i=0;i<total;i++)d.push(i%52);
+  shuf(d);
+  for(i=0;i<n;i++){var pp=[];for(j=0;j<cfg.s;j++){var c=d.slice(k,k+4);k+=4;pp.push({c:c,done:same4(c)});}piles.push(pp);}
+  var center=d.slice(k,k+cfg.c);k+=cfg.c;
+  if(k!==total)return null;
+  return {cfg:cfg,piles:piles,center:center};
+}
+function dealNew(){
+  var b=buildDeal(ST.decks,ST.players.length);
+  if(!b){showErr("ชุดผู้เล่น/สำรับไม่ถูกต้อง: "+ST.decks+" สำรับ "+ST.players.length+" คน");return false;}
+  ST.np=b.cfg.s;ST.csize=b.cfg.c;
+  for(var i=0;i<ST.players.length;i++){var p=ST.players[i];p.piles=b.piles[i];p.held=null;p.give=null;p._n=0;}
+  ST.center=b.center;ST.started=true;ST.winner=-1;ST.matchOver=false;ST.ev=null;
+  ST.t0=Date.now();ST.tEnd=0;ST.snapDone=null;ST.pw=null;
+  if(winTimer){clearTimeout(winTimer);winTimer=null;}
+  return true;
+}
+function emit(e){ST.evId=(ST.evId||0)+1;e.id=ST.evId;ST.ev=e;}
+
+/* กติกาหลัก — ใช้ร่วมกันทั้ง host, client prediction, บอท และตัวตรวจระบบ */
+function mutate(S,idx,a){
+  var p=S.players[idx];if(!p||!a)return false;
+  if(a.t==="pick"){
+    if(!(a.i>=0&&a.i<p.piles.length))return false;
+    if(p.piles[a.i].done)return false;
+    p.held=(p.held===a.i)?null:a.i;p.give=null;return true;
+  }
+  if(a.t==="give"){if(p.held===null||!(a.j>=0&&a.j<4))return false;p.give=(p.give===a.j)?null:a.j;return true;}
+  if(a.t==="drop"){if(p.held===null&&p.give===null)return false;p.held=null;p.give=null;return true;}
+  if(a.t==="swap"){
+    if(p.held===null||p.give===null)return false;
+    if(!(a.k>=0&&a.k<S.center.length))return false;
+    var pl=p.piles[p.held];
+    if(!pl||pl.done||!pl.c||pl.c.length!==4)return false;
+    var tmp=pl.c[p.give];pl.c[p.give]=S.center[a.k];S.center[a.k]=tmp;
+    p.give=null;
+    if(same4(pl.c)){pl.done=true;p.held=null;}
+    return true;
+  }
+  return false;
+}
+function applyAct(idx,a,ats,noSync){
+  if(!ST||!ST.started||ST.winner>=0||!a)return false;
+  var p=ST.players[idx];if(!p)return false;
+  var before=(a.t==="swap"&&p.held!==null)?p.held:-1;
+  if(!mutate(ST,idx,a))return false;
+  var ev={k:a.t,p:idx};
+  if(a.t==="swap"){ev.c=a.k;ev.pile=before;if(before>=0&&p.piles[before]&&p.piles[before].done)ev.k="done";}
+  emit(ev);
+  if(allDone(p))candidateWin(idx,ats||Date.now());
+  if(!noSync)sync();
+  return true;
+}
+function candidateWin(idx,ats){
+  if(!ST.pw||ats<ST.pw.ts)ST.pw={i:idx,ts:ats};
+  if(!winTimer)winTimer=setTimeout(safe(finalizeWin,"win"),(MODE==="solo")?50:230);
+}
+function finalizeWin(){
+  winTimer=null;
+  if(!ST||!ST.pw||ST.winner>=0)return;
+  var i=ST.pw.i,p=ST.players[i];if(!p)return;
+  ST.winner=i;ST.tEnd=Date.now();p.pts=(p.pts||0)+1;
+  ST.snapDone=ST.players.map(function(q){return doneCnt(q);});
+  if(p.pts>=ST.target)ST.matchOver=true;
+  emit({k:"win",p:i});
+  if(botT){clearInterval(botT);botT=null;}
+  sync();
+}
+function snapOf(S,v,ack,ver){
+  return {v:ver,w:S.winner,mo:S.matchOver?1:0,np:S.np,cs:S.csize,dk:S.decks,rd:S.round,tg:S.target,
+    t0:S.t0,te:S.tEnd||0,sd:S.snapDone||null,ev:S.evId||0,evk:S.ev||null,ct:S.center.slice(),ack:ack,
+    pl:S.players.map(function(p,i){
+      return {n:p.name,a:p.av,b:p.bot?1:0,o:p.online===false?0:1,au:p.auto?1:0,pt:p.pts||0,
+        h:p.held,g:(i===v?p.give:null),pg:p.ping||0,
+        pi:p.piles.map(function(x){return {d:x.done?1:0,c:(x.done||i===v)?x.c.slice():null};})};})};
+}
+function snap(v){ST.ver=(ST.ver||0)+1;return snapOf(ST,v,(LASTSEQ[v]!=null?LASTSEQ[v]:-1),ST.ver);}
+function fromSnap(s){
+  return {ver:s.v,started:true,winner:s.w,matchOver:!!s.mo,np:s.np,csize:s.cs,decks:s.dk,round:s.rd,target:s.tg,
+    t0:s.t0,tEnd:s.te,snapDone:s.sd,evId:s.ev,ev:s.evk,center:s.ct,
+    players:s.pl.map(function(p){return {name:p.n,av:p.a,bot:!!p.b,online:!!p.o,auto:!!p.au,pts:p.pt,held:p.h,give:p.g,ping:p.pg,
+      piles:p.pi.map(function(x){return {c:x.c,done:!!x.d};})};})};
+}
+function cloneState(s){
+  var o={},k;for(k in s)o[k]=s[k];
+  o.center=s.center.slice();
+  o.players=s.players.map(function(p){var q={},kk;for(kk in p)q[kk]=p[kk];
+    q.piles=p.piles.map(function(x){return {c:x.c?x.c.slice():null,done:x.done};});return q;});
+  return o;
+}
+function VIEW(){
+  if(!ST)return null;
+  if(MODE!=="client"||!PEND.length)return ST;
+  var c=cloneState(ST);
+  for(var i=0;i<PEND.length;i++){try{mutate(c,MY,PEND[i].a);}catch(e){}}
+  return c;
+}
+function sync(){if(MODE==="host")cast();fx(ST&&ST.ev);render();updateOv();}
+
+/* ================= 5. BOTS (เห็นเฉพาะกองตัวเอง + ไพ่กลาง) ================= */
+var SPD={easy:[1500,2700],normal:[800,1500],hard:[380,850]};
+function botChoice(S,idx,force){
+  var p=S.players[idx],best=null,i,j,k;
+  if(!p||!p.piles.length||!S.center.length)return null;
+  for(i=0;i<p.piles.length;i++){
+    var pi=p.piles[i];if(pi.done)continue;
+    var cnt={},tc=0;
+    for(j=0;j<4;j++){var r=rankOf(pi.c[j]);cnt[r]=(cnt[r]||0)+1;if(cnt[r]>tc)tc=cnt[r];}
+    for(k=0;k<S.center.length;k++){
+      var rc=rankOf(S.center[k]),cr=cnt[rc]||0;
+      if(cr+1<=tc)continue;
+      var gj=-1,gm=9;
+      for(j=0;j<4;j++){var rj=rankOf(pi.c[j]);if(rj!==rc&&cnt[rj]<gm){gm=cnt[rj];gj=j;}}
+      if(gj<0)continue;
+      var sc=(cr+1)*10+Math.random();
+      if(!best||sc>best.sc)best={sc:sc,i:i,j:gj,k:k};
+    }
+  }
+  if(best)return best;
+  if(!force&&Math.random()>.55)return null;
+  var op=[];for(i=0;i<p.piles.length;i++)if(!p.piles[i].done)op.push(i);
+  if(!op.length)return null;
+  var pidx=op[Math.floor(Math.random()*op.length)],pl=p.piles[pidx],c2={},top=-1,tc2=0,w=-1,wc=9;
+  for(j=0;j<4;j++){var r2=rankOf(pl.c[j]);c2[r2]=(c2[r2]||0)+1;if(c2[r2]>tc2){tc2=c2[r2];top=r2;}}
+  for(j=0;j<4;j++){var r3=rankOf(pl.c[j]);if((tc2===1||r3!==top)&&c2[r3]<wc){wc=c2[r3];w=j;}}
+  if(w<0)w=0;
+  return {i:pidx,j:w,k:Math.floor(Math.random()*S.center.length)};
+}
+function botLoop(){
+  if(!ST||!ST.started||ST.winner>=0)return;
+  var now=Date.now();
+  for(var i=0;i<ST.players.length;i++){
+    var p=ST.players[i];if(!p.bot&&!p.auto)continue;
+    if(!p._n)p._n=now+rnd(700,1600);
+    if(now>=p._n){p._n=now+rnd(SPD[DIFF][0],SPD[DIFF][1]);try{botMove(i);}catch(e){showErr("bot: "+e.message);}}
+  }
+}
+function botMove(idx){
+  if(DIFF==="easy"&&Math.random()<.28)return;
+  var ch=botChoice(ST,idx,false);if(!ch)return;
+  var p=ST.players[idx];p.held=ch.i;p.give=ch.j;
+  applyAct(idx,{t:"swap",k:ch.k},Date.now(),true);
+  if(ST&&ST.players[idx]){ST.players[idx].held=null;ST.players[idx].give=null;}
+  sync();
+}
+
+/* ================= 6. P2P ================= */
+var NET={peer:null,conns:{},host:null,code:""};
+var CDN=["https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js","https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js","https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"];
+function loadPeer(cb){
+  if(typeof window.Peer==="function")return cb(true);
+  var i=0;
+  (function nx(){
+    if(i>=CDN.length)return cb(false);
+    var s=document.createElement("script");s.src=CDN[i++];s.async=true;var done=false;
+    var to=setTimeout(function(){if(!done){done=true;s.onload=null;s.onerror=null;nx();}},7000);
+    s.onload=function(){if(done)return;done=true;clearTimeout(to);if(typeof window.Peer==="function")cb(true);else nx();};
+    s.onerror=function(){if(done)return;done=true;clearTimeout(to);nx();};
+    document.head.appendChild(s);
+  })();
+}
+var AL="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function code5(){var s="";for(var i=0;i<5;i++)s+=AL[Math.floor(Math.random()*AL.length)];return s;}
+function pid(c){return "spdmatch28-"+String(c).toLowerCase();}
+function ns(m,c){var e=$("netStatus");e.innerHTML=m;e.className="status"+(c?" "+c:"");}
+function ls(m,c){var e=$("lobStatus");e.textContent=m;e.className="status"+(c?" "+c:"");}
+function secureOK(){return location.protocol==="https:"||location.hostname==="localhost"||location.hostname==="127.0.0.1";}
+function envCheck(){
+  if(location.protocol==="file:")return "\u274C เปิดแบบ <b>file://</b> — P2P ใช้ไม่ได้<br>อัปขึ้น GitHub Pages / Netlify แล้วเปิดผ่าน https";
+  if(!secureOK())return "\u26A0\uFE0F ต้องเปิดผ่าน <b>https</b> เบราว์เซอร์จึงยอมให้ใช้ WebRTC";
+  if(!window.RTCPeerConnection)return "\u274C เบราว์เซอร์ไม่รองรับ WebRTC";
+  return null;
+}
+function doCast(){for(var k in NET.conns){var c=NET.conns[k];if(c&&c.open){try{c.send({t:"s",s:snap(parseInt(k,10))});}catch(e){}}}}
+function cast(){if(castT){castPend=true;return;}doCast();castT=setTimeout(function(){castT=null;if(castPend){castPend=false;cast();}},45);}
+function castLobby(){
+  if(MODE!=="host"||!ST)return;
+  var pl=ST.players.map(function(p){return {n:p.name,a:p.av,o:p.online?1:0,b:p.bot?1:0,pg:p.ping||0};});
+  for(var k in NET.conns){var c=NET.conns[k];if(c&&c.open){try{c.send({t:"l",seats:ST.seats,dk:ST.decks,tg:ST.target,pl:pl});}catch(e){}}}
+}
+function startKeep(){if(keepT)clearInterval(keepT);
+  keepT=setInterval(function(){if(MODE!=="host"||!ST)return;if(ST.started)doCast();else castLobby();},2500);}
+function createRoom(seats,target,decks){
+  var env=envCheck();if(env){ns(env,"err");SFX.err();return;}
+  $("bCreate").disabled=true;
+  ns("\u23F3 กำลังโหลดระบบ P2P…");
+  loadPeer(function(ok){
+    if(!ok){$("bCreate").disabled=false;ns("\u274C โหลดไลบรารี P2P ไม่ได้ (โหมดบอทยังเล่นได้ปกติ)","err");SFX.err();return;}
+    ns("\u23F3 กำลังสร้างห้อง…");var tries=0;
+    (function att(){
+      tries++;var c=code5(),peer,fin=false;
+      try{peer=new Peer(pid(c),{debug:0});}catch(e){$("bCreate").disabled=false;ns("\u274C สร้างห้องไม่ได้","err");return;}
+      var to=setTimeout(function(){if(fin)return;fin=true;try{peer.destroy();}catch(e){}
+        if(tries<3)att();else{$("bCreate").disabled=false;ns("\u274C ต่อเซิร์ฟเวอร์กลางไม่สำเร็จ — กด “ทดสอบการเชื่อมต่อ”","err");SFX.err();}},11000);
+      peer.on("open",function(){
+        if(fin)return;fin=true;clearTimeout(to);$("bCreate").disabled=false;
+        NET.peer=peer;NET.code=c;NET.conns={};MODE="host";MY=0;LASTSEQ={};PEND=[];SEQ=0;LOB=null;
+        ST={players:[seat(myName(),false,myAv)],center:[],started:false,winner:-1,matchOver:false,
+          seats:seats,decks:decks,np:CFG[decks][seats].s,csize:CFG[decks][seats].c,target:target,round:0,evId:0,ver:0};
+        peer.on("connection",function(cn){
+          cn.on("data",safe(function(m){hostData(cn,m);},"hostData"));
+          cn.on("close",function(){gone(cn);});cn.on("error",function(){gone(cn);});
+        });
+        peer.on("disconnected",function(){try{peer.reconnect();}catch(e){}});
+        startKeep();
+        $("lobCode").textContent=c;$("lobTitle").textContent="🏠 ห้องของคุณ";
+        $("bStart").style.display="";$("bShare").parentNode.style.display="";
+        $("lobNote").textContent="ที่นั่งว่างจะใส่บอทอัตโนมัติเมื่อกดเริ่มเกม";
+        $("lobSum").innerHTML=sumText(decks,seats,target);
+        ls("\u2705 ห้องพร้อม — รอเพื่อนเข้าร่วม","ok");show("scLobby");lobby();SFX.join();
+      });
+      peer.on("error",function(e){var t=e&&e.type;
+        if(!fin&&t==="unavailable-id"){fin=true;clearTimeout(to);try{peer.destroy();}catch(x){}
+          if(tries<5)att();else{$("bCreate").disabled=false;ns("\u274C สร้างห้องไม่สำเร็จ","err");}return;}
+        if(!fin){fin=true;clearTimeout(to);$("bCreate").disabled=false;ns("\u274C "+(t||"error")+" — กด “ทดสอบการเชื่อมต่อ”","err");SFX.err();}});
+    })();
+  });
+}
+function hostData(cn,m){
+  if(!m||!m.t||!ST)return;
+  if(m.t==="j"){
+    var nm=String(m.n||"ผู้เล่น").slice(0,12),av=String(m.a||"\uD83D\uDE42").slice(0,5),i,s=-1;
+    for(i=1;i<ST.players.length;i++)if(ST.players[i].name===nm&&!ST.players[i].online&&!ST.players[i].bot){s=i;break;}
+    if(s<0&&!ST.started){for(i=0;i<ST.players.length;i++)if(ST.players[i].name===nm&&ST.players[i].online){nm=(nm+"2").slice(0,12);break;}}
+    if(s<0&&!ST.started&&ST.players.length<ST.seats){ST.players.push(seat(nm,false,av));s=ST.players.length-1;}
+    if(s<0){try{cn.send({t:"e",m:"ห้องเต็มหรือเกมเริ่มไปแล้ว"});}catch(e){}setTimeout(function(){try{cn.close();}catch(e){}},400);return;}
+    var p=ST.players[s];p.name=nm;p.av=av;p.online=true;p.auto=false;p.bot=false;
+    cn._s=s;NET.conns[s]=cn;LASTSEQ[s]=-1;
+    try{cn.send({t:"w",i:s});}catch(e){}
+    if(ST.started){try{cn.send({t:"s",s:snap(s)});}catch(e){}}
+    SFX.join();toast(av+" "+nm+" เข้าร่วมห้อง");lobby();castLobby();if(ST.started)cast();
+    return;
+  }
+  var st=cn._s;if(st==null||NET.conns[st]!==cn)return;
+  if(m.t==="p"){try{cn.send({t:"q",ts:m.ts,h:Date.now()});}catch(e){}
+    if(typeof m.r==="number"&&ST.players[st])ST.players[st].ping=Math.max(0,Math.min(3000,m.r|0));return;}
+  if(m.t==="a"){
+    if(typeof m.q!=="number")return;
+    if(LASTSEQ[st]!=null&&m.q<=LASTSEQ[st])return;
+    LASTSEQ[st]=m.q;
+    var ats=Date.now();
+    if(typeof m.c==="number"&&typeof m.o==="number"){var t2=m.c+m.o;if(Math.abs(t2-Date.now())<4000)ats=t2;}
+    if(!applyAct(st,m.a,ats))cast();   /* ปฏิเสธ action → ส่ง ack กลับให้ client ล้าง prediction */
+  }
+}
+function gone(cn){
+  var s=cn._s;if(s==null||!ST||!ST.players[s]||NET.conns[s]!==cn)return;
+  delete NET.conns[s];
+  var p=ST.players[s];
+  if(!ST.started){
+    /* FIX: หลุดในล็อบบี้ → คืนที่นั่ง และเลื่อนลำดับคนที่เหลือ */
+    ST.players.splice(s,1);
+    var nc={},nl={},k;
+    for(k in NET.conns){var c=NET.conns[k],old=parseInt(k,10),ni=old>s?old-1:old;c._s=ni;nc[ni]=c;nl[ni]=LASTSEQ[old];
+      if(ni!==old){try{c.send({t:"w",i:ni});}catch(e){}}}
+    NET.conns=nc;LASTSEQ=nl;
+    toast(p.name+" ออกจากห้อง");lobby();castLobby();updNetChip();return;
+  }
+  p.online=false;p.ping=0;
+  toast(p.name+" หลุด — เกมเดินต่อ");
+  setTimeout(function(){
+    if(!ST||!ST.players[s])return;
+    if(!ST.players[s].online&&ST.started&&ST.winner<0){ST.players[s].auto=true;
+      if(!botT&&MODE!=="client")botT=setInterval(safe(botLoop,"botLoop"),200);}
+  },9000);
+  cast();render();
+}
+NET.send=function(o){if(NET.host&&NET.host.open){try{NET.host.send(o);}catch(e){}}};
+function joinRoom(raw){
+  var c=String(raw||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+  if(c.length!==5){ns("\u26A0\uFE0F รหัสต้องมี 5 ตัว","err");SFX.err();return;}
+  var env=envCheck();if(env){ns(env,"err");SFX.err();return;}
+  $("bJoin").disabled=true;
+  ns("\u23F3 กำลังโหลดระบบ P2P…");
+  loadPeer(function(ok){
+    if(!ok){$("bJoin").disabled=false;ns("\u274C โหลดไลบรารี P2P ไม่ได้","err");SFX.err();return;}
+    ns("\u23F3 กำลังเชื่อมต่อห้อง "+c+"…");
+    var peer,fin=false;
+    try{peer=new Peer({debug:0});}catch(e){$("bJoin").disabled=false;ns("\u274C เชื่อมต่อไม่ได้","err");return;}
+    var to=setTimeout(function(){if(fin)return;fin=true;$("bJoin").disabled=false;try{peer.destroy();}catch(e){}
+      ns("\u274C เชื่อมไม่สำเร็จ — เช็ครหัส/อินเทอร์เน็ต","err");SFX.err();},13000);
+    peer.on("open",function(){
+      var cn=peer.connect(pid(c),{reliable:true});
+      cn.on("open",function(){
+        if(fin)return;fin=true;clearTimeout(to);$("bJoin").disabled=false;
+        NET.peer=peer;NET.host=cn;NET.code=c;MODE="client";
+        PEND=[];SEQ=0;lastEvSeen=0;ST=null;LOB=null;
+        cn.send({t:"j",n:myName(),a:myAv});startPing();
+        $("lobCode").textContent=c;$("lobTitle").textContent="🚪 อยู่ในห้อง";
+        $("bStart").style.display="none";$("lobNote").textContent="รอเจ้าของห้องกดเริ่มเกม";
+        $("lobSum").textContent="กำลังโหลดข้อมูลห้อง…";$("lobPlayers").innerHTML="";
+        ls("\u2705 เชื่อมต่อสำเร็จ","ok");show("scLobby");SFX.join();
+      });
+      cn.on("data",safe(function(m){cliData(m);},"cliData"));
+      cn.on("close",function(){if(MODE==="client"&&NET.host===cn){stopPing();$("ovLost").classList.add("on");}});
+      cn.on("error",function(){if(!fin){fin=true;clearTimeout(to);$("bJoin").disabled=false;ns("\u274C ไม่พบห้องนี้","err");SFX.err();}});
+    });
+    peer.on("error",function(e){if(fin)return;fin=true;clearTimeout(to);$("bJoin").disabled=false;var t=e&&e.type;
+      ns(t==="peer-unavailable"?("\u274C ไม่พบห้อง "+c):("\u274C เชื่อมไม่สำเร็จ ("+t+")"),"err");SFX.err();});
+  });
+}
+function startPing(){stopPing();
+  pingT=setInterval(function(){if(MODE!=="client"||!NET.host||!NET.host.open)return;NET.send({t:"p",ts:Date.now(),r:MYPING});},2000);
+  NET.send({t:"p",ts:Date.now(),r:0});}
+function stopPing(){if(pingT){clearInterval(pingT);pingT=null;}}
+function cliData(m){
+  if(!m||!m.t)return;
+  if(m.t==="w"){MY=m.i;PEND=[];SEQ=0;lastEvSeen=0;lobby();return;}
+  if(m.t==="e"){var cd=NET.code;MODE="solo";netClose();NET.code=cd;ns("\u274C "+m.m,"err");show("scHome");setTab("net");SFX.err();return;}
+  if(m.t==="q"){var now=Date.now(),rtt=now-m.ts;MYPING=rtt;CLKOFF=(m.h+rtt/2)-now;updNetChip();return;}
+  if(m.t==="l"){
+    LOB={seats:m.seats,decks:m.dk,target:m.tg,players:m.pl.map(function(p){return {name:p.n,av:p.a,online:!!p.o,bot:!!p.b,ping:p.pg};})};
+    $("lobSum").innerHTML=sumText(m.dk,m.seats,m.tg);lobby();return;
+  }
+  if(m.t==="s"){
+    var s=m.s;if(!s)return;
+    if(ST&&typeof s.v==="number"&&s.v<=(ST.ver||0))return;   /* ver ไม่รีเซ็ตข้ามรอบ */
+    var prevStarted=!!(ST&&ST.started),prevRound=ST?ST.round:-1;
+    ST=fromSnap(s);
+    if(typeof s.ack==="number"){var out=[];for(var i=0;i<PEND.length;i++)if(PEND[i].seq>s.ack)out.push(PEND[i]);PEND=out;}
+    if(PEND.length>10)PEND=PEND.slice(-6);
+    if(!prevStarted){
+      LOB=null;show("scGame");musOn();startTick();banner("รอบ "+ST.round,"GO");SFX.round();
+      [30,180,420,800].forEach(function(d){setTimeout(fit,d);});
+    }else if(ST.round!==prevRound){
+      PEND=[];$("ovRound").classList.remove("on");$("ovWin").classList.remove("on");
+      banner("รอบ "+ST.round,ST.round===1?"NEW MATCH":"READY");SFX.round();
+      [30,180,420].forEach(function(d){setTimeout(fit,d);});
+    }
+    fx(ST.ev);render();updateOv();
+  }
+}
+function netClose(){
+  stopPing();
+  if(keepT){clearInterval(keepT);keepT=null;}
+  if(castT){clearTimeout(castT);castT=null;castPend=false;}
+  var conns=NET.conns,host=NET.host,peer=NET.peer;
+  NET.peer=null;NET.host=null;NET.conns={};
+  try{for(var k in conns)if(conns[k])conns[k].close();}catch(e){}
+  try{if(host)host.close();}catch(e){}
+  try{if(peer)peer.destroy();}catch(e){}
+}
+
+/* ================= 7. EFFECTS ================= */
+function fx(ev){
+  if(TESTING||!ev||typeof ev.id!=="number"||ev.id===lastEvSeen)return;
+  lastEvSeen=ev.id;
+  var mine=(ev.p===MY&&MODE==="client");
+  if(!mine){if(ev.k==="pick")SFX.pick();else if(ev.k==="give")SFX.give();else if(ev.k==="swap"||ev.k==="done")SFX.swap();}
+  if(ev.k==="swap"||ev.k==="done"){setTimeout(function(){var c=document.querySelector('#crow .card[data-k="'+ev.c+'"]');
+    if(c){c.classList.add("flash");setTimeout(function(){c.classList.remove("flash");},520);}},15);}
+  if(ev.k==="done"){setTimeout(function(){SFX.done();
+    var sel=(ev.p===MY)?('#mePiles .pile[data-i="'+ev.pile+'"]'):('#opps .ob[data-p="'+ev.p+'"] .pile[data-i="'+ev.pile+'"]');
+    var el=document.querySelector(sel);if(el){el.classList.add("pop");confetti(7,el);setTimeout(function(){el.classList.remove("pop");},640);}},150);}
+  if(ev.k==="win"){SFX.point();var t=(ev.p===MY)?$("me"):document.querySelector('#opps .ob[data-p="'+ev.p+'"]');if(t)floatPt("+1",t);}
+}
+
+/* ================= 8. RENDER ================= */
+function pipsH(pts,target){
+  if(target>7)return '<span class="mo">\uD83C\uDFC6 '+pts+"/"+target+"</span>";
+  var h="";for(var i=0;i<target;i++)h+='<i class="'+(i<pts?"f":"")+'"></i>';return h;
+}
+function cardH(v,face,cls,attr){
+  if(!face||v==null||v<0)return '<div class="card back '+(cls||"")+'" '+(attr||"")+'></div>';
+  var r=rankOf(v),s=suitOf(v);
+  return '<div class="card'+((s===1||s===2)?" red":"")+" "+(cls||"")+'" '+(attr||"")+'><span class="rk">'+RANKS[r]+'</span><span class="st">'+SUITS[s]+"</span></div>";
+}
+function pileH(p,pi,i,mine){
+  var held=(p.held===i),face=(held&&mine)||pi.done,cs="";
+  for(var j=0;j<4;j++)cs+=cardH(pi.c?pi.c[j]:null,face,(held&&mine&&p.give===j)?"give":"",'data-c="'+j+'"');
+  return '<div class="pile'+(held?" held":"")+(pi.done?" done":"")+'" data-i="'+i+'"><div class="gr">'+cs+'</div><div class="lb">'+(pi.done?"\u2713 สำเร็จ":("กอง "+(i+1)))+"</div></div>";
+}
+function pingCls(ms){return ms<=0?"":(ms<140?"":(ms<320?"mid":"bad"));}
+function oppLayout(nopp){return nopp<=3?{c:Math.max(1,nopp),r:1}:{c:Math.ceil(nopp/2),r:2};}
+function render(){
+  var V=VIEW();if(!V||!V.players||!V.started)return;
+  var n=V.players.length,np=V.np,i,j,h="";
+  $("chRound").textContent="รอบ "+V.round+" \u00B7 \uD83C\uDFC6"+V.target;
+  var L=oppLayout(n-1),O=$("opps");
+  O.style.gridTemplateColumns="repeat("+L.c+",minmax(0,1fr))";
+  O.style.gridTemplateRows="repeat("+L.r+",minmax(0,1fr))";
+  for(i=0;i<n;i++){
+    if(i===MY)continue;
+    var p=V.players[i],d=doneCnt(p);
+    h+='<div class="ob opp'+((d>=np-1&&d>0)?" lead":"")+(p.online?"":" off")+'" data-p="'+i+'" style="--sc:'+SEATC[i%SEATC.length]+'">'+
+      '<div class="nm"><span class="av">'+(p.av||"\uD83D\uDE42")+'</span><span class="who">'+esc(p.name)+((p.bot||p.auto)?" \u00B7bot":"")+"</span>"+
+      (p.ping>0?('<span class="pg '+pingCls(p.ping)+'">'+Math.round(p.ping)+"</span>"):"")+
+      '<span class="tp">\uD83C\uDFC6'+(p.pts||0)+'</span><span class="sc">'+d+"/"+np+"</span></div>"+
+      '<div class="bar"><i style="width:'+(np?d/np*100:0)+'%"></i></div>'+
+      '<div class="pw"><div class="pr" style="grid-template-columns:repeat('+oppCols+',auto)">';
+    for(j=0;j<p.piles.length;j++)h+=pileH(p,p.piles[j],j,false);
+    h+="</div></div></div>";
+  }
+  O.innerHTML=h;
+  var ch="";for(i=0;i<V.center.length;i++)ch+=cardH(V.center[i],true,"",'data-k="'+i+'"');
+  $("crow").innerHTML=ch;
+  var me=V.players[MY],armed=!!(me&&me.held!==null&&me.give!==null&&V.winner<0);
+  $("cz").className=armed?"armed":"";
+  $("ctTitle").textContent=armed?"\uD83C\uDFAF แตะไพ่กลางเพื่อสลับ":("ไพ่กลาง \u00B7 "+V.center.length+" ใบ");
+  if(me){
+    var d2=doneCnt(me),mh="";
+    $("meAv").textContent=me.av||"\uD83D\uDE42";$("meName").textContent=me.name+" (คุณ)";
+    $("mePips").innerHTML=pipsH(me.pts||0,V.target);$("meScore").textContent=d2+"/"+np;
+    $("meBar").style.width=(np?d2/np*100:0)+"%";
+    for(i=0;i<me.piles.length;i++)mh+=pileH(me,me.piles[i],i,true);
+    $("mePiles").innerHTML=mh;
+    var hint=$("hint");
+    if(V.winner>=0)hint.textContent="\uD83C\uDFC1 จบรอบแล้ว";
+    else if(allDone(me))hint.textContent="\u23F3 ครบทุกกองแล้ว! กำลังตัดสิน…";
+    else if(me.held===null)hint.textContent="\uD83D\uDC46 แตะกองของคุณเพื่อหยิบขึ้นมา";
+    else if(me.give===null)hint.textContent="\u270B เลือกไพ่ 1 ใบในกองที่ไม่ต้องการ";
+    else hint.textContent="\uD83C\uDFAF แตะไพ่กลางเพื่อสลับ";
+    $("bDrop").disabled=(me.held===null);
+  }
+  updNetChip();
+  requestAnimationFrame(fit);
+}
+function updNetChip(){
+  var c=$("chNet");
+  if(MODE==="client"){c.style.display="";c.className="chip net "+pingCls(MYPING);c.textContent="\u25CF "+(MYPING?Math.round(MYPING)+"ms":"…");}
+  else if(MODE==="host"){var k,cnt=0;for(k in NET.conns)cnt++;c.style.display="";c.className="chip net";c.textContent="\u25CF HOST "+cnt;}
+  else c.style.display="none";
+}
+function bestGrid(cnt,W,H,gap,padW,padH,lbl){
+  var best=0,bc=1;if(cnt<=0)return {cols:1,cw:10};
+  for(var c=1;c<=cnt;c++){var r=Math.ceil(cnt/c),pw=(W-gap*(c-1))/c,ph=(H-gap*(r-1))/r;
+    var cw=Math.min((pw-padW)/2,(ph-padH-lbl)/2/1.45);if(cw>best){best=cw;bc=c;}}
+  return {cols:bc,cw:best};
+}
+function fit(){
+  var V=VIEW();if(!V||!V.np||!$("scGame").classList.contains("on"))return;
+  try{
+    var np=V.np,n=V.players.length,S=document.documentElement.style,T=$("table");
+    var H=T.clientHeight||innerHeight,W=T.clientWidth||innerWidth,cs=V.center.length;
+    var twoRow=(cs>4)&&((W-24)/cs<50);
+    var L=oppLayout(n-1),avail=H-22;
+    var cenH=cl(64,avail*0.34,avail*(twoRow?0.27:0.19));
+    var oppH=cl(54,avail*0.46,avail*(L.r===1?0.29:0.40));
+    var meH=avail-cenH-oppH;
+    if(meH<96){var cut=Math.min(96-meH,oppH-54);oppH-=cut;meH+=cut;}
+    $("opps").style.height=Math.round(oppH)+"px";$("cz").style.height=Math.round(cenH)+"px";
+    var boxW=(W-12-5*(L.c-1))/L.c,boxH=(oppH-5*(L.r-1))/L.r;
+    var og=bestGrid(np,boxW-14,boxH-32,4,9,9,0);oppCols=og.cols;
+    S.setProperty("--cw",cl(6,30,og.cw).toFixed(1)+"px");
+    var orows=document.querySelectorAll("#opps .pr");
+    for(var oi=0;oi<orows.length;oi++)orows[oi].style.gridTemplateColumns="repeat("+oppCols+",auto)";
+    var colsC=twoRow?Math.ceil(cs/2):cs,rowsC=Math.ceil(cs/colsC),cg=7;
+    var ccw=Math.min((W-28-cg*(colsC-1))/colsC,((cenH-26-cg*(rowsC-1))/rowsC)/1.45);
+    $("crow").style.gridTemplateColumns="repeat("+colsC+",auto)";
+    S.setProperty("--cc",cl(18,64,ccw).toFixed(1)+"px");
+    var M=$("me"),mg=bestGrid(np,(M.clientWidth||W)-14,(M.clientHeight||meH)-36,4,11,9,12);
+    $("mePiles").style.gridTemplateColumns="repeat("+mg.cols+",auto)";
+    S.setProperty("--cw2",cl(11,56,mg.cw).toFixed(1)+"px");
+    requestAnimationFrame(function(){try{
+      var rows=document.querySelectorAll("#scGame .pr,#crow");
+      for(var i=0;i<rows.length;i++){var r=rows[i],w=r.parentNode;r.style.transform="";
+        var sw=r.scrollWidth,sh=r.scrollHeight,cw3=w.clientWidth,ch3=w.clientHeight;
+        if(sw>0&&sh>0&&cw3>0&&ch3>0){var sc=Math.min(cw3/sw,ch3/sh,1);if(sc<0.998)r.style.transform="scale("+(sc*0.99).toFixed(3)+")";}}
+    }catch(e){}});
+  }catch(e){showErr("fit: "+e.message);}
+}
+addEventListener("resize",function(){requestAnimationFrame(fit);});
+addEventListener("orientationchange",function(){setTimeout(fit,320);});
+function sumText(dk,n,tg){
+  var c=CFG[dk]&&CFG[dk][n];
+  if(!c)return '<b style="color:var(--bad)">ชุดนี้เล่นไม่ได้ (แบ่งกองไม่ลงตัว)</b>';
+  return "<b>"+dk+" สำรับ</b> ("+(dk*52)+" ใบ) \u00B7 <b>"+n+" คน</b><br>คนละ <b>"+c.s+" กอง</b> \u00D7 4 ใบ \u00B7 ไพ่กลาง <b>"+c.c+" ใบ</b>"+(tg?(" \u00B7 ชนะ <b>"+tg+"</b> แต้ม"):"");
+}
+function lobby(){
+  var src=(MODE==="client")?LOB:ST;if(!src)return;
+  var s=src.seats||src.players.length,h="";
+  for(var i=0;i<s;i++){
+    var p=src.players[i],col=SEATC[i%SEATC.length];
+    if(p)h+='<div class="prow" style="border-left-color:'+col+'"><span class="dot'+(p.online?"":" off")+'"></span><span class="av">'+(p.av||"\uD83D\uDE42")+
+      '</span><span class="nmx">'+(i===0?"\uD83D\uDC51 ":"")+esc(p.name)+(i===MY?' <span style="color:var(--gold2)">(คุณ)</span>':"")+
+      '</span><span class="tag">'+(p.online?(p.ping>0?(Math.round(p.ping)+"ms"):"พร้อม"):"หลุด")+"</span></div>";
+    else h+='<div class="prow" style="opacity:.42"><span class="dot off"></span><span class="av">\uD83E\uDD16</span><span class="nmx">ที่นั่งว่าง</span><span class="tag">รอ / ใส่บอท</span></div>';
+  }
+  $("lobPlayers").innerHTML=h;
+}
+
+/* ================= 9. OVERLAYS ================= */
+function updateOv(){
+  var V=ST;if(!V||!V.started||TESTING)return;
+  if(V.winner<0){$("ovRound").classList.remove("on");$("ovWin").classList.remove("on");return;}
+  if(V.matchOver){if(!$("ovWin").classList.contains("on"))showMatch();}
+  else if(!$("ovRound").classList.contains("on"))showRound();
+}
+function rankRows(){
+  var arr=ST.players.map(function(p,i){return {n:p.name,av:p.av||"\uD83D\uDE42",pts:p.pts||0,d:(ST.snapDone?ST.snapDone[i]:doneCnt(p)),i:i};});
+  arr.sort(function(a,b){return (b.pts-a.pts)||(b.d-a.d);});return arr;
+}
+function rowH(r,k,extra){
+  return '<div class="r'+(r.i===MY?" mine":"")+'" style="animation-delay:'+(k*.05)+'s"><span class="md">'+MD[k]+'</span><span class="av">'+r.av+
+    '</span><span class="nmx">'+esc(r.n)+(r.i===MY?" (คุณ)":"")+"</span>"+(r.i===ST.winner?'<span class="plus">+1</span>':"")+extra+"</div>";
+}
+function showRound(){
+  if(botT){clearInterval(botT);botT=null;}
+  var w=ST.winner,win=(w===MY),p=ST.players[w];if(!p)return;
+  $("rMedal").textContent=win?"\uD83C\uDF89":"\uD83D\uDE24";
+  $("rText").innerHTML=win?"คุณชนะรอบนี้! <b>+1 แต้ม</b>":(p.av+" <b>"+esc(p.name)+"</b> ชนะรอบนี้");
+  var s=Math.floor(((ST.tEnd||Date.now())-ST.t0)/1000);
+  $("rSub").innerHTML="รอบที่ "+ST.round+" \u00B7 เวลา "+Math.floor(s/60)+":"+("0"+(s%60)).slice(-2)+" \u00B7 \uD83C\uDFC6 เป้าหมาย "+ST.target+" แต้ม";
+  $("rRank").innerHTML=rankRows().map(function(r,k){return rowH(r,k,'<span class="p">'+r.pts+' แต้ม<span class="pl">'+r.d+"/"+ST.np+" กอง</span></span>");}).join("");
+  var isHost=(MODE!=="client");
+  $("bNext").style.display=isHost?"":"none";$("rWait").style.display=isHost?"none":"";
+  $("ovRound").classList.add("on");if(win)confetti(32);
+}
+function showMatch(){
+  if(botT){clearInterval(botT);botT=null;}
+  var w=ST.winner,win=(w===MY),p=ST.players[w];if(!p)return;
+  $("wMedal").textContent=win?"\uD83C\uDFC6":"\uD83C\uDFC5";
+  $("wText").innerHTML=win?"MATCH! <b>คุณชนะ!</b>":("แชมป์คือ "+p.av+" <b>"+esc(p.name)+"</b>");
+  $("wSub").textContent="จบแมตช์ "+ST.round+" รอบ \u00B7 เป้าหมาย "+ST.target+" แต้ม";
+  var arr=rankRows(),ord=[1,0,2],ph="";
+  for(var t=0;t<3;t++){var q=arr[ord[t]];if(!q)continue;
+    ph+='<div class="p'+(ord[t]+1)+'" style="animation-delay:'+(t*.11)+'s"><span class="a">'+q.av+'</span><span class="n">'+esc(q.n)+'</span><span class="v">'+q.pts+"</span></div>";}
+  $("pod").innerHTML=ph;$("pod").style.display=arr.length>=2?"":"none";
+  $("wRank").innerHTML=arr.map(function(r,k){return rowH(r,k,'<span class="p">'+r.pts+" แต้ม</span>");}).join("");
+  var isHost=(MODE!=="client");
+  $("bAgain").style.display=isHost?"":"none";$("wWait").style.display=isHost?"none":"";
+  $("ovWin").classList.add("on");if(win){SFX.win();confetti(70);}else SFX.lose();
+}
+
+/* ================= 10. INPUT ================= */
+function act(a){
+  var V=VIEW();if(!V||!V.started||V.winner>=0)return;
+  if(MODE==="client"){
+    var test=cloneState(V);if(!mutate(test,MY,a)){SFX.err();return;}
+    SEQ++;PEND.push({seq:SEQ,a:a,t:Date.now()});if(PEND.length>10)PEND.shift();
+    NET.send({t:"a",q:SEQ,a:a,c:Date.now(),o:CLKOFF});
+    if(a.t==="pick")SFX.pick();else if(a.t==="give")SFX.give();else if(a.t==="swap")SFX.swap();
+    render();
+  }else applyAct(MY,a,Date.now());
+}
+$("mePiles").addEventListener("click",safe(function(e){
+  var V=VIEW();if(!V||!V.players[MY])return;unlock();
+  var pe=e.target.closest(".pile");if(!pe)return;
+  var i=parseInt(pe.getAttribute("data-i"),10),me=V.players[MY];
+  if(isNaN(i)||!me.piles[i])return;
+  if(me.piles[i].done){SFX.err();toast("กองนี้สำเร็จแล้ว แตะไม่ได้");return;}
+  var ce=e.target.closest(".card");
+  if(ce&&me.held===i){act({t:"give",j:parseInt(ce.getAttribute("data-c"),10)});return;}
+  act({t:"pick",i:i});
+},"mePiles"));
+$("crow").addEventListener("click",safe(function(e){
+  var V=VIEW();if(!V||!V.players[MY])return;unlock();
+  var c=e.target.closest(".card");if(!c)return;
+  var me=V.players[MY];
+  if(me.held===null){SFX.err();toast("แตะกองของคุณก่อน");return;}
+  if(me.give===null){SFX.err();toast("เลือกไพ่ 1 ใบในกองก่อน");return;}
+  act({t:"swap",k:parseInt(c.getAttribute("data-k"),10)});
+},"crow"));
+on("bDrop",function(){act({t:"drop"});});
+
+/* ================= 11. FLOW ================= */
+function show(id){
+  ["scHome","scLobby","scGame"].forEach(function(s){$(s).classList.toggle("on",s===id);});
+  document.body.classList.toggle("ingame",id==="scGame");
+  $("chTime").style.display=(id==="scGame")?"":"none";
+  $("chRound").style.display=(id==="scGame")?"":"none";
+  if(id==="scHome")$("chNet").style.display="none";else updNetChip();
+}
+function myName(){
+  var el=$("myName"),v=(el.value||"").trim();
+  if(!v){v="นักวิ่ง"+Math.floor(100+Math.random()*900);el.value=v;}
+  v=v.slice(0,12);try{localStorage.setItem("sm_name",v);}catch(e){}return v;
+}
+function startTick(){
+  if(tick)clearInterval(tick);
+  tick=setInterval(function(){var V=ST;if(!V||!V.started)return;
+    var now=Date.now()+(MODE==="client"?CLKOFF:0);
+    var s=Math.max(0,Math.floor((((V.winner>=0&&V.tEnd)?V.tEnd:now)-V.t0)/1000));
+    $("chTime").textContent=("0"+Math.floor(s/60)).slice(-2)+":"+("0"+(s%60)).slice(-2);},250);
+}
+function startRound(newMatch){
+  if(!ST)return;
+  if(newMatch){ST.round=1;ST.players.forEach(function(p){p.pts=0;});}else ST.round=(ST.round||1)+1;
+  $("ovRound").classList.remove("on");$("ovWin").classList.remove("on");
+  if(!dealNew())return;
+  PEND=[];show("scGame");musOn();startTick();
+  if(botT)clearInterval(botT);
+  if(MODE!=="client")botT=setInterval(safe(botLoop,"botLoop"),200);
+  sync();banner("รอบ "+ST.round,newMatch?"GO":"READY");SFX.round();
+  [30,170,420,850].forEach(function(d){setTimeout(fit,d);});
+}
+function goHome(){
+  if(tick){clearInterval(tick);tick=null;}
+  if(botT){clearInterval(botT);botT=null;}
+  if(winTimer){clearTimeout(winTimer);winTimer=null;}
+  MODE="solo";musOff();netClose();
+  ST=null;LOB=null;PEND=[];SEQ=0;LASTSEQ={};lastEvSeen=0;MY=0;
+  ["ovWin","ovLost","ovRound"].forEach(function(o){$(o).classList.remove("on");});
+  ns("พร้อมเชื่อมต่อ");show("scHome");
+}
+
+/* ================= 12. SETUP UI ================= */
+function segBind(id,fn){
+  var el=$(id);if(!el){showErr("missing seg #"+id);return;}
+  el.addEventListener("click",safe(function(e){
+    var b=e.target.closest("button");if(!b||b.disabled)return;
+    var a=el.querySelectorAll("button");for(var i=0;i<a.length;i++)a[i].classList.remove("sel");
+    b.classList.add("sel");unlock();SFX.tap();fn(b);
+  },id));
+}
+function makeSetup(pfx,st,startBtn){
+  var plEl=$(pfx+"Pl"),sumEl=$(pfx+"Sum");
+  function renderPl(){var h="";for(var i=2;i<=6;i++){var c=CFG[st.decks][i];
+    h+='<button data-n="'+i+'"'+(c?"":" disabled")+((st.n===i&&c)?' class="sel"':"")+">"+i+" คน<small>"+(c?(c.s+" กอง"):"\u2014")+"</small></button>";}
+    plEl.innerHTML=h;}
+  function upd(){sumEl.innerHTML=sumText(st.decks,st.n,st.pts);$(startBtn).disabled=!CFG[st.decks][st.n];}
+  plEl.addEventListener("click",safe(function(e){var b=e.target.closest("button");if(!b||b.disabled)return;
+    st.n=parseInt(b.getAttribute("data-n"),10);renderPl();upd();unlock();SFX.tap();},pfx+"Pl"));
+  segBind(pfx+"Deck",function(b){st.decks=parseInt(b.getAttribute("data-d"),10);
+    if(!CFG[st.decks][st.n]){for(var i=2;i<=6;i++)if(CFG[st.decks][i]){st.n=i;break;}}renderPl();upd();});
+  segBind(pfx+"Pts",function(b){st.pts=parseInt(b.getAttribute("data-p"),10);upd();});
+  renderPl();upd();
+}
+var soloSet={decks:1,n:2,pts:1},roomSet={decks:1,n:2,pts:1};
+try{makeSetup("solo",soloSet,"bSolo");makeSetup("room",roomSet,"bCreate");segBind("soloDiff",function(b){DIFF=b.getAttribute("data-x");});}
+catch(e){showErr("setup: "+e.message);}
+var TAB="bot";
+function setTab(t){TAB=t;var bs=$("tabs").querySelectorAll("button");
+  for(var i=0;i<bs.length;i++)bs[i].classList.toggle("sel",bs[i].getAttribute("data-t")===t);
+  $("paneBot").classList.toggle("on",t==="bot");$("paneNet").classList.toggle("on",t==="net");$("paneHow").classList.toggle("on",t==="how");}
+$("tabs").addEventListener("click",safe(function(e){var b=e.target.closest("button");if(!b)return;unlock();SFX.tap();setTab(b.getAttribute("data-t"));},"tabs"));
+function setAv(a){myAv=a;$("bigAv").textContent=a;var bs=$("avPick").querySelectorAll("button");
+  for(var i=0;i<bs.length;i++)bs[i].classList.toggle("sel",bs[i].getAttribute("data-a")===a);}
+try{(function(){var w=$("avPick"),h="";
+  for(var i=0;i<AVS.length;i++)h+='<button data-a="'+AVS[i]+'">'+AVS[i]+"</button>";
+  w.innerHTML=h;setAv(AVS[0]);
+  w.addEventListener("click",safe(function(e){var b=e.target.closest("button");if(!b)return;
+    setAv(b.getAttribute("data-a"));unlock();SFX.tap();try{localStorage.setItem("sm_av",myAv);}catch(x){}},"avPick"));
+})();}catch(e){showErr("av: "+e.message);}
+
+/* ================= 13. BUTTONS ================= */
+on("bSolo",function(){
+  var c=CFG[soloSet.decks][soloSet.n];if(!c){toast("ชุดนี้เล่นไม่ได้");SFX.err();return;}
+  unlock();SFX.tap();MODE="solo";MY=0;PEND=[];SEQ=0;LASTSEQ={};lastEvSeen=0;LOB=null;
+  ST={players:[seat(myName(),false,myAv)],center:[],started:false,winner:-1,matchOver:false,
+    seats:soloSet.n,decks:soloSet.decks,np:c.s,csize:c.c,target:soloSet.pts,round:0,evId:0,ver:0};
+  for(var i=1;i<soloSet.n;i++){var b=BOTS[(i-1)%BOTS.length];ST.players.push(seat(b[0],true,b[1]));}
+  startRound(true);
+});
+on("bCreate",function(){if(!CFG[roomSet.decks][roomSet.n]){toast("ชุดนี้เล่นไม่ได้");return;}
+  unlock();SFX.tap();myName();createRoom(roomSet.n,roomSet.pts,roomSet.decks);});
+on("bJoin",function(){unlock();SFX.tap();myName();joinRoom($("joinCode").value);});
+on("bStart",function(){
+  if(MODE!=="host"||!ST)return;SFX.tap();
+  ST.players.forEach(function(p,i){if(i>0&&!p.online&&!p.bot)p.auto=true;});
+  var bi=0;
+  while(ST.players.length<ST.seats){var b=BOTS[bi++%BOTS.length];ST.players.push(seat(b[0],true,b[1]));}
+  if(!CFG[ST.decks][ST.players.length]){toast("จำนวนผู้เล่นไม่ถูกต้อง");return;}
+  ST.round=0;startRound(true);
+});
+on("bNext",function(){if(MODE==="client"||!ST)return;SFX.tap();startRound(false);});
+on("bAgain",function(){if(MODE==="client"||!ST)return;SFX.tap();startRound(true);});
+["bRHome","bLeave","bQuit","bWHome","bLHome"].forEach(function(id){on(id,function(){SFX.tap();goHome();});});
+on("bRecon",function(){$("ovLost").classList.remove("on");var c=NET.code;MODE="solo";netClose();NET.code=c;PEND=[];SEQ=0;ST=null;
+  show("scHome");setTab("net");joinRoom(c);});
+on("bRules",function(){SFX.tap();$("ovRules").classList.add("on");});
+on("bRulesClose",function(){SFX.tap();$("ovRules").classList.remove("on");});
+on("errClose",function(){$("errPanel").classList.remove("on");$("errText").textContent="";errCount=0;});
+on("errReload",function(){location.reload();});
+on("bCopy",function(){copyTxt(NET.code);});
+on("bShare",function(){var u=location.origin+location.pathname+"?r="+NET.code;
+  if(navigator.share)navigator.share({title:"SPEED MATCH",text:"มาแข่งไพ่เร็ว! รหัสห้อง: "+NET.code,url:u}).catch(function(){copyTxt(u);});else copyTxt(u);});
+function copyTxt(t){
+  if(!t){toast("ยังไม่มีรหัสห้อง");return;}
+  function fb(x){try{var a=document.createElement("textarea");a.value=x;a.style.position="fixed";a.style.opacity=0;
+    document.body.appendChild(a);a.select();document.execCommand("copy");document.body.removeChild(a);toast("คัดลอกแล้ว");}catch(e){toast(x);}}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(function(){toast("คัดลอกแล้ว");},function(){fb(t);});else fb(t);
+}
+on("bDiag",function(){
+  unlock();SFX.tap();var out=$("diagOut"),L=[];
+  function push(ok,txt){L.push("<div><span>"+(ok===1?"\u2705":ok===0?"\u274C":"\u23F3")+"</span><span>"+txt+"</span></div>");out.innerHTML=L.join("");}
+  out.innerHTML="";
+  push(secureOK()?1:0,"โปรโตคอล: <b>"+location.protocol+"</b>"+(secureOK()?" (ใช้ได้)":" (ต้องเป็น https)"));
+  push(window.RTCPeerConnection?1:0,"WebRTC: "+(window.RTCPeerConnection?"รองรับ":"ไม่รองรับ"));
+  push(2,"กำลังโหลดไลบรารี P2P…");
+  loadPeer(function(ok){L.pop();push(ok?1:0,"ไลบรารี P2P: "+(ok?"โหลดสำเร็จ":"โหลดไม่ได้"));if(!ok)return;
+    push(2,"กำลังต่อเซิร์ฟเวอร์กลาง…");var p,fin=false;
+    try{p=new Peer({debug:0});}catch(e){L.pop();push(0,"สร้าง Peer ไม่ได้");return;}
+    var to=setTimeout(function(){if(fin)return;fin=true;try{p.destroy();}catch(e){}L.pop();push(0,"ต่อเซิร์ฟเวอร์กลางไม่สำเร็จ (หมดเวลา)");},11000);
+    p.on("open",function(id){if(fin)return;fin=true;clearTimeout(to);L.pop();push(1,"เชื่อมต่อสำเร็จ \u00B7 ID: "+String(id).slice(0,10)+"…");
+      L.push('<div><span>\uD83C\uDF89</span><span style="color:var(--sage)">พร้อมสร้าง/เข้าห้องได้เลย</span></div>');out.innerHTML=L.join("");
+      try{p.destroy();}catch(e){}SFX.join();});
+    p.on("error",function(e){if(fin)return;fin=true;clearTimeout(to);L.pop();push(0,"ผิดพลาด: "+(e&&e.type?e.type:"unknown"));});
+  });
+});
+$("joinCode").addEventListener("input",function(){this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,"");});
+setInterval(function(){
+  if(MODE!=="client"||!PEND.length)return;
+  var now=Date.now(),keep=[];for(var i=0;i<PEND.length;i++)if(now-PEND[i].t<3000)keep.push(PEND[i]);
+  if(keep.length!==PEND.length){PEND=keep;render();}
+},1000);
+
+/* ================= 14. SELF TEST ================= */
+var tLog=[];
+function tl(cls,txt){tLog.push('<div class="'+cls+'">'+esc(txt)+"</div>");var l=$("tLog");l.innerHTML=tLog.join("");l.scrollTop=1e6;}
+function R(e){return e.getBoundingClientRect();}
+function rectOv(a,b,t){return Math.min(a.right,b.right)-Math.max(a.left,b.left)>t&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>t;}
+function inside(a,b,t){return a.left>=b.left-t&&a.right<=b.right+t&&a.top>=b.top-t&&a.bottom<=b.bottom+t;}
+function visKids(el){return [].slice.call(el.children).filter(function(c){var cs=getComputedStyle(c);return c.offsetParent!==null&&cs.position!=="absolute"&&cs.position!=="fixed"&&cs.display!=="none";});}
+function auditFlow(el,name,iss){
+  var k=visKids(el),pr=R(el);
+  for(var i=0;i<k.length;i++){var a=R(k[i]);
+    if(a.right>pr.right+1.5||a.left<pr.left-1.5)iss.push(name+": องค์ประกอบล้นขอบแนวนอน ("+(k[i].id||k[i].className)+")");
+    if(i<k.length-1){var b=R(k[i+1]);if(a.bottom>b.top+1)iss.push(name+": ซ้อนกัน ("+(k[i].id||k[i].className||k[i].tagName)+" ↔ "+(k[i+1].id||k[i+1].className||k[i+1].tagName)+")");}}
+}
+function auditPairs(nodes,name,iss){var r=[].slice.call(nodes).map(R);
+  for(var i=0;i<r.length;i++)for(var j=i+1;j<r.length;j++)if(rectOv(r[i],r[j],1)){iss.push(name+": ปุ่ม/ช่องซ้อนกัน");return;}}
+function auditGame(){
+  var iss=[];
+  var boxes=[].slice.call(document.querySelectorAll("#opps .ob"));boxes.push($("me"));
+  boxes.forEach(function(bx,bi){var br=R(bx),ps=[].slice.call(bx.querySelectorAll(".pile")).map(R);
+    for(var i=0;i<ps.length;i++){if(!inside(ps[i],br,1.5)){iss.push("กองล้นกรอบผู้เล่น #"+bi);break;}
+      for(var j=i+1;j<ps.length;j++)if(rectOv(ps[i],ps[j],1)){iss.push("กองซ้อนกัน #"+bi);i=ps.length;break;}}});
+  var cz=R($("cz")),cards=[].slice.call(document.querySelectorAll("#crow .card")).map(R);
+  for(var i=0;i<cards.length;i++){if(!inside(cards[i],cz,1.5)){iss.push("ไพ่กลางล้นพื้นที่");break;}
+    for(var j=i+1;j<cards.length;j++)if(rectOv(cards[i],cards[j],0.5)){iss.push("ไพ่กลางซ้อนกัน");i=cards.length;break;}}
+  var o=R($("opps")),m=R($("me")),d=R($("dock"));
+  if(rectOv(o,cz,1))iss.push("ไพ่กลางทับโซนคู่แข่ง");
+  if(rectOv(m,cz,1))iss.push("ไพ่กลางทับโซนเรา");
+  if(m.bottom>d.top+1)iss.push("โซนเราทับแถบล่าง");
+  if(d.bottom>innerHeight+1)iss.push("แถบล่างตกจอ");
+  [].slice.call(document.querySelectorAll("header .btn, header .chip")).forEach(function(e){if(e.offsetParent&&R(e).right>innerWidth+1)iss.push("หัวจอล้นขอบ");});
+  var mc=document.querySelector("#mePiles .card");if(mc&&R(mc).width<15)iss.push("WARN:ไพ่ของเราเล็ก ("+R(mc).width.toFixed(0)+"px)");
+  var cc=document.querySelector("#crow .card");if(cc&&R(cc).width<20)iss.push("WARN:ไพ่กลางเล็ก ("+R(cc).width.toFixed(0)+"px)");
+  return iss.filter(function(v,i,a){return a.indexOf(v)===i;});
+}
+function invCheck(S,d,cfg,errs,tag){
+  var cnt=[],i,j,k;for(i=0;i<52;i++)cnt.push(0);
+  if(S.center.length!==cfg.c)errs.push(tag+" ไพ่กลาง "+S.center.length+"≠"+cfg.c);
+  for(i=0;i<S.center.length;i++)cnt[S.center[i]]++;
+  for(i=0;i<S.players.length;i++){var p=S.players[i];
+    if(p.piles.length!==cfg.s)errs.push(tag+" P"+(i+1)+" มี "+p.piles.length+" กอง");
+    for(j=0;j<p.piles.length;j++){var pl=p.piles[j];
+      if(!pl.c||pl.c.length!==4){errs.push(tag+" กองไม่ครบ 4 ใบ");continue;}
+      if(pl.done&&!same4(pl.c))errs.push(tag+" กองสำเร็จแต่เลขไม่ตรง");
+      for(k=0;k<4;k++)cnt[pl.c[k]]++;}}
+  for(i=0;i<52;i++)if(cnt[i]!==d){errs.push(tag+" ไพ่ใบที่ "+i+" มี "+cnt[i]+" ใบ (ควร "+d+")");break;}
+}
+function simConfig(d,n,MAX){
+  var errs=[],cfg=CFG[d][n],tag=d+"สำรับ/"+n+"คน",b=buildDeal(d,n);
+  if(!b)return {errs:[tag+" แจกไพ่ไม่สำเร็จ"],steps:0,win:-1};
+  var S={center:b.center,players:b.piles.map(function(pp){return {piles:pp,held:null,give:null};})};
+  invCheck(S,d,cfg,errs,tag);
+  var sn=snapOf(S,0,-1,1);
+  for(var i=1;i<n;i++)sn.pl[i].pi.forEach(function(x){if(!x.d&&x.c!==null)errs.push(tag+" ข้อมูลไพ่คนอื่นรั่วใน snapshot");});
+  var T=cloneState(S);T.players[0].piles[0].done=true;
+  if(mutate(T,0,{t:"pick",i:0}))errs.push(tag+" หยิบกองที่สำเร็จแล้วได้");
+  if(mutate(T,0,{t:"swap",k:0}))errs.push(tag+" สลับได้โดยไม่ถือกอง");
+  if(mutate(T,0,{t:"give",j:0}))errs.push(tag+" เลือกไพ่ได้โดยไม่ถือกอง");
+  if(mutate(T,0,{t:"pick",i:99}))errs.push(tag+" หยิบกองที่ไม่มีอยู่ได้");
+  var steps=0,win=-1;
+  while(steps<MAX&&win<0&&errs.length<4){
+    steps++;
+    var idx=Math.floor(Math.random()*n),p=S.players[idx],ch=botChoice(S,idx,true);if(!ch)continue;
+    var before=[];p.piles.forEach(function(x,j){if(x.done)before.push(j+":"+x.c.join(","));});
+    if(p.held!==null)mutate(S,idx,{t:"drop"});
+    if(!mutate(S,idx,{t:"pick",i:ch.i})||!mutate(S,idx,{t:"give",j:ch.j})||!mutate(S,idx,{t:"swap",k:ch.k})){errs.push(tag+" action ถูกต้องแต่ถูกปฏิเสธ");break;}
+    if(p.held!==null)mutate(S,idx,{t:"drop"});
+    var after=[];p.piles.forEach(function(x,j){if(x.done)after.push(j+":"+x.c.join(","));});
+    for(var q=0;q<before.length;q++)if(after.indexOf(before[q])<0){errs.push(tag+" กองที่สำเร็จแล้วถูกแก้ไข");break;}
+    invCheck(S,d,cfg,errs,tag);
+    if(allDone(p)){win=idx;
+      for(var o=0;o<n;o++)if(o!==idx&&allDone(S.players[o]))errs.push(tag+" มีผู้ชนะซ้อน");}
+  }
+  return {errs:errs,steps:steps,win:win};
+}
+function layoutConfig(d,n,cb){
+  var b=buildDeal(d,n);MODE="solo";MY=0;
+  ST={players:[],center:b.center,started:true,winner:-1,matchOver:false,seats:n,decks:d,np:b.cfg.s,csize:b.cfg.c,
+    target:20,round:3,evId:0,ver:0,t0:Date.now(),tEnd:0};
+  for(var i=0;i<n;i++){var pp=seat(i?("ผู้เล่นชื่อยาวมาก"+i):"ทดสอบระบบยาว",i>0,AVS[i]);pp.piles=b.piles[i];pp.pts=i;pp.ping=i*90;ST.players.push(pp);}
+  var me=ST.players[0];for(i=0;i<me.piles.length;i++)if(!me.piles[i].done){me.held=i;me.give=1;break;}
+  me.piles[me.piles.length-1].done=true;
+  show("scGame");render();
+  setTimeout(function(){fit();setTimeout(function(){requestAnimationFrame(function(){requestAnimationFrame(function(){cb(auditGame());});});},70);},40);
+}
+function runTests(){
+  if(TESTING)return;
+  if(ST||MODE!=="solo"){tl("bad","ออกจากเกม/ห้องก่อนตรวจระบบ");return;}
+  TESTING=true;tLog=[];$("tLog").innerHTML="";$("bTestRun").disabled=true;$("bTestClose").disabled=true;
+  var fails=0,warns=0,q=[],prevTab=TAB,started=Date.now();
+  function add(f){q.push(f);}
+  function next(){if(!q.length){finish();return;}var f=q.shift();setTimeout(function(){try{f(next);}catch(e){fails++;tl("bad","\u2717 "+e.message);next();}},20);}
+  function report(name,iss){
+    var real=iss.filter(function(x){return x.indexOf("WARN:")!==0;}),w=iss.filter(function(x){return x.indexOf("WARN:")===0;});
+    if(real.length){fails+=real.length;real.forEach(function(x){tl("bad","\u2717 "+name+" — "+x);});}
+    else tl("ok","\u2713 "+name);
+    w.forEach(function(x){warns++;tl("wr","\u26A0 "+name+" — "+x.slice(5));});
+  }
+  add(function(nx){tl("hd","① ตารางสำรับ/ผู้เล่น");
+    var bad=0;for(var d in CFG)for(var n in CFG[d]){var c=CFG[d][n];if(n*c.s*4+c.c!==d*52)bad++;}
+    if(CFG[1][5])bad++;
+    if(bad){fails+=bad;tl("bad","\u2717 สูตรแบ่งไพ่ผิด "+bad+" ชุด");}else tl("ok","\u2713 9 ชุดแบ่งลงตัว · 1 สำรับ 5 คนถูกปิด");
+    var b5=$("soloPl").querySelector('button[data-n="5"]');
+    if(soloSet.decks===1&&b5&&!b5.disabled){fails++;tl("bad","\u2717 ปุ่ม 5 คน (1 สำรับ) กดได้");}else tl("ok","\u2713 ปุ่มชุดที่เล่นไม่ได้ถูก disable");
+    nx();});
+  add(function(nx){tl("hd","② หน้าแรก — ตรวจการซ้อนทับ ("+innerWidth+"×"+innerHeight+")");
+    var tabs=["bot","net","how"],ti=0;
+    (function one(){if(ti>=tabs.length){nx();return;}var t=tabs[ti++];setTab(t);
+      requestAnimationFrame(function(){requestAnimationFrame(function(){var iss=[];
+        auditFlow($("homeScroll"),"หน้าแรก",iss);
+        var pane=document.querySelector(".box.pane.on");if(pane)auditFlow(pane,"แท็บ "+t,iss);
+        [].slice.call(document.querySelectorAll("#scHome .seg, #avPick, #tabs")).forEach(function(s){if(s.offsetParent)auditPairs(s.children,"แท็บ "+t,iss);});
+        report("แท็บ "+t,iss);one();});});})();});
+  var list=[];for(var d in CFG)for(var n in CFG[d])list.push([parseInt(d,10),parseInt(n,10)]);
+  add(function(nx){tl("hd","③ จำลองเล่นจบรอบ ทุกชุด (กติกา + จำนวนไพ่ทุกก้าว)");nx();});
+  list.forEach(function(c){add(function(nx){
+    var r=simConfig(c[0],c[1],60000),name=c[0]+" สำรับ · "+c[1]+" คน";
+    if(r.errs.length){fails+=r.errs.length;r.errs.forEach(function(x){tl("bad","\u2717 "+x);});}
+    else if(r.win<0){warns++;tl("wr","\u26A0 "+name+" — ไม่จบใน "+r.steps+" ก้าว (กติกาถูกต้องทุกก้าว)");}
+    else tl("ok","\u2713 "+name+" — ผู้เล่น "+(r.win+1)+" ชนะใน "+r.steps+" ก้าว · ไพ่ครบ "+(c[0]*52)+" ใบทุกก้าว");
+    $("tProg").textContent="กำลังตรวจ… "+name;nx();});});
+  add(function(nx){tl("hd","④ เลย์เอาต์หน้าเกม ทุกชุด (ไม่ซ้อน / ไม่ล้น / หน้าเดียว)");nx();});
+  list.forEach(function(c){add(function(nx){layoutConfig(c[0],c[1],function(iss){report("เกม "+c[0]+" สำรับ · "+c[1]+" คน",iss);nx();});});});
+  add(function(nx){tl("hd","⑤ ล็อบบี้ + หน้าสรุปผล");
+    showRound();
+    requestAnimationFrame(function(){requestAnimationFrame(function(){var iss=[],pn=$("ovRound").querySelector(".panel");
+      auditFlow(pn,"สรุปรอบ",iss);if(!inside(R(pn),{left:0,top:0,right:innerWidth,bottom:innerHeight},1))iss.push("กล่องล้นจอ");
+      report("หน้าสรุปรอบ",iss);$("ovRound").classList.remove("on");
+      ST.matchOver=true;ST.winner=1;showMatch();
+      requestAnimationFrame(function(){requestAnimationFrame(function(){var iss2=[],pn2=$("ovWin").querySelector(".panel");
+        auditFlow(pn2,"แชมป์",iss2);report("หน้าแชมป์แมตช์",iss2);$("ovWin").classList.remove("on");
+        MODE="host";ST={seats:6,players:[seat("โฮสต์ชื่อยาวมากๆ",false,AVS[0]),seat("เพื่อน",false,AVS[1]),seat("คนหลุด",false,AVS[2])],started:false};
+        ST.players[2].online=false;$("lobCode").textContent="ABCDE";$("lobSum").innerHTML=sumText(2,6,5);show("scLobby");lobby();
+        requestAnimationFrame(function(){requestAnimationFrame(function(){var iss3=[];auditFlow($("lobScroll"),"ล็อบบี้",iss3);
+          auditFlow($("scLobby").querySelector(".box"),"ล็อบบี้",iss3);report("ล็อบบี้",iss3);MODE="solo";nx();});});});});});});});
+  add(function(nx){tl("hd","⑥ ปุ่มทั้งหมด");
+    var ids=["bMusic","bSfx","bRules","bSolo","bCreate","bJoin","bDiag","bStart","bLeave","bCopy","bShare","bDrop","bQuit","bNext","bRHome","bAgain","bWHome","bRecon","bLHome","bRulesClose","bTest"];
+    var miss=ids.filter(function(i){return !$(i);});
+    if(miss.length){fails+=miss.length;tl("bad","\u2717 ไม่พบปุ่ม: "+miss.join(", "));}else tl("ok","\u2713 ปุ่มครบ "+ids.length+" ปุ่ม");
+    tl("wr","\u2139 P2P ต้องใช้ 2 เครื่องจริง — ใช้ปุ่ม 🔍 ทดสอบการเชื่อมต่อ แล้วลองสร้าง/เข้าห้อง");nx();});
+  function finish(){
+    ST=null;MODE="solo";MY=0;["ovRound","ovWin"].forEach(function(o){$(o).classList.remove("on");});
+    show("scHome");setTab(prevTab);TESTING=false;
+    $("bTestRun").disabled=false;$("bTestClose").disabled=false;
+    var sec=((Date.now()-started)/1000).toFixed(1);
+    $("tProg").innerHTML=fails?('<b style="color:var(--bad)">พบปัญหา '+fails+" จุด</b> · คำเตือน "+warns+" · "+sec+" วิ"):('<b style="color:var(--sage)">ผ่านทั้งหมด ✓</b> · คำเตือน '+warns+" · "+sec+" วิ");
+    tl(fails?"bad":"ok",fails?"สรุป: พบปัญหา "+fails+" จุด":"สรุป: ผ่านทุกการทดสอบ");
+  }
+  $("tProg").textContent="กำลังตรวจ…";next();
+}
+on("bTest",function(){unlock();SFX.tap();$("ovTest").classList.add("on");});
+on("bTestRun",function(){runTests();});
+on("bTestClose",function(){if(!TESTING)$("ovTest").classList.remove("on");});
+
+/* ================= 15. INIT ================= */
+try{
+  $("verTxt").textContent="v"+VER;
+  var sn=localStorage.getItem("sm_name");if(sn)$("myName").value=sn;
+  var sa=localStorage.getItem("sm_av");if(sa&&AVS.indexOf(sa)>=0)setAv(sa);
+}catch(e){}
+try{
+  var mm=location.search.match(/[?&]r=([A-Za-z0-9]{5})/);
+  if(mm){setTab("net");$("joinCode").value=mm[1].toUpperCase();
+    setTimeout(function(){ns("\uD83D\uDD11 พบรหัสห้อง "+mm[1].toUpperCase()+" — ใส่ชื่อแล้วกดเข้าร่วม","ok");},420);}
+  var env=envCheck();if(env)setTimeout(function(){if(!mm)ns(env,"err");},650);
+}catch(e){showErr("init: "+e.message);}
+})();
+</script>
+</body>
+</html>
